@@ -6,6 +6,7 @@
         "release": "changeset publish"
     },
     "devDependencies": {
+        "@changesets/changelog-github": "^0.4.5",
         "@changesets/cli": "^2.23.2",
         "@cloudflare/workers-types": "^3.14.1",
         "@lerna-lite/cli": "^1.6.0",
