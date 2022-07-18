@@ -20,6 +20,13 @@
     "tracing"
   ],
   "author": "Richard Simpson <richicoder1@outlook.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RichiCoder1/opentelemetry-sdk-workers.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=14",
