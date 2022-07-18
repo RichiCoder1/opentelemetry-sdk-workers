@@ -7,7 +7,7 @@ class UnsupportedMethodError extends Error {
     }
 }
 
-export const performance = new Proxy({
+const performanceShim = new Proxy({
     now: () => Date.now(),
     // TODO: How should this behave in a worker?
     timeOrigin: Date.now(),
@@ -19,3 +19,6 @@ export const performance = new Proxy({
         return Reflect.get(target, prop, receiver);
     }
 });
+
+// @ts-ignore
+globalThis["performance"] = performanceShim;

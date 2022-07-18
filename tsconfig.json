@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
+    "target": "ES2020",
+    "module": "CommonJS",
     "lib": [
-      "es2020"
+      "ES2020"
     ],
     "declaration": true,
     "declarationDir": "dist",
@@ -20,9 +20,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": [
-      "@cloudflare/workers-types"
-    ]
-  },
-  "include": ["packages/**/*"]
+    "types": ["@cloudflare/workers-types"]
+  }
 }

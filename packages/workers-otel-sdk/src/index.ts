@@ -1,1 +1,0 @@
-import "workers-performance-polyfill";

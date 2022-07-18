@@ -1,0 +1,41 @@
+{
+  "name": "opentelemetry-sdk-workers",
+  "version": "0.0.1",
+  "description": "Open Telemetry Cloudflare Workers Library. Provides a basic sdk for instrumenting workers.",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./performance": "./dist/performance.mjs"
+  },
+  "scripts": {
+    "build": "tsup",
+    "watch": "tsup --watch"
+  },
+  "keywords": [
+    "otel",
+    "opentelemetry",
+    "cloudflare",
+    "worker",
+    "tracing"
+  ],
+  "author": "Richard Simpson <richicoder1@outlook.com>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14",
+    "pnpm": ">=7"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.1.0",
+    "@opentelemetry/core": "^1.4.0",
+    "@opentelemetry/otlp-exporter-base": "^0.30.0",
+    "@opentelemetry/otlp-transformer": "^0.30.0",
+    "@opentelemetry/resources": "^1.4.0",
+    "@opentelemetry/sdk-trace-base": "^1.4.0",
+    "@opentelemetry/semantic-conventions": "^1.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^3.14.1",
+    "@opentelemetry/instrumentation": "^0.30.0"
+  }
+}
