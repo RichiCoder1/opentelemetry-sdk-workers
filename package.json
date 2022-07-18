@@ -1,6 +1,12 @@
 {
     "packageManager": "pnpm@7.5.2",
+    "scripts": {
+        "build": "nx run-many --target=build --all",
+        "changeset": "changeset",
+        "release": "changeset publish"
+    },
     "devDependencies": {
+        "@changesets/cli": "^2.23.2",
         "@cloudflare/workers-types": "^3.14.1",
         "@lerna-lite/cli": "^1.6.0",
         "nx": "^14.4.3",
