@@ -1,5 +1,5 @@
 {
-    "name": "worker-sample",
+    "name": "proto-worker-sample",
     "private": true,
     "devDependencies": {
         "wrangler": "^2.0.22"
