@@ -254,7 +254,7 @@ export class WorkersSDK {
             const exportPromises = [
                 this.traceProvider.forceFlush(),
             ];
-            if (this.logExportEnabled) {
+            if (this.logExporter) {
                 exportPromises.push(new Promise<void>((resolve, reject) => {
                     this.logExporter!.export(this.#logs, (result) => {
                         if (result.code === ExportResultCode.SUCCESS) {
