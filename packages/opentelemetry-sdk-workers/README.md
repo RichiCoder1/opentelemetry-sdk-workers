@@ -85,7 +85,7 @@ export default {
 	): Promise<Response> {
 		const sdk = new WorkersSDK(request, ctx, {
 			service: "sample-worker",
-			exporter: new TracesFetchProtoExporter({
+			traceExporter: new TracesFetchProtoExporter({
 				url: env.OTLP_ENDPOINT
 			})
 		});
