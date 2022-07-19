@@ -8,8 +8,34 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.mjs"
     },
-    "./performance": "./dist/performance.mjs",
-    "./dist/TracesFetchProtoExporter": "./dist/TracesFetchProtoExporter.mjs"
+    "./performance": {
+      "types": "./dist/preformance.d.ts",
+      "default": "./dist/performance.mjs"
+    },
+    "./exporters/OTLPProtoTraceExporter": {
+      "types": "./dist/exporters/OTLPProtoTraceExporter.d.ts",
+      "default": "./dist/exporters/OTLPProtoTraceExporter.mjs"
+    },
+    "./exporters/OTLPProtoLogExporter": {
+      "types": "./dist/exporters/OTLPProtoLogExporter.d.ts",
+      "default": "./dist/exporters/OTLPProtoLogExporter.mjs"
+    },
+    "./*": {
+      "default": null
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/types/index.d.ts"
+      ],
+      "exporters/OTLPProtoTraceExporter": [
+        "dist/exporters/OTLPProtoTraceExporter.d.ts"
+      ],
+      "exporters/OTLPProtoLogExporter": [
+        "dist/exporters/OTLPProtoLogExporter.d.ts"
+      ]
+    }
   },
   "types": "dist/index.d.ts",
   "scripts": {
@@ -65,6 +91,9 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^3.14.1",
     "@opentelemetry/instrumentation": "^0.30.0",
+    "@types/lodash-es": "^4.17.6",
+    "diary": "^0.3.1",
+    "lodash-es": "^4.17.21",
     "protobufjs-cli": "^1.0.0"
   }
 }

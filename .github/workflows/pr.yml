@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: 16.x
           check-latest: true
-          cache: pnp
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install

@@ -36,6 +36,9 @@ importers:
       '@opentelemetry/resources': ^1.4.0
       '@opentelemetry/sdk-trace-base': ^1.4.0
       '@opentelemetry/semantic-conventions': ^1.4.0
+      '@types/lodash-es': ^4.17.6
+      diary: ^0.3.1
+      lodash-es: ^4.17.21
       protobufjs: ^7.0.0
       protobufjs-cli: ^1.0.0
     dependencies:
@@ -50,9 +53,21 @@ importers:
     devDependencies:
       '@cloudflare/workers-types': 3.14.1
       '@opentelemetry/instrumentation': 0.30.0_@opentelemetry+api@1.1.0
+      '@types/lodash-es': 4.17.6
+      diary: 0.3.1
+      lodash-es: 4.17.21
       protobufjs-cli: 1.0.0_protobufjs@7.0.0
 
-  samples/worker:
+  samples/basic-worker:
+    specifiers:
+      opentelemetry-sdk-workers: workspace:*
+      wrangler: ^2.0.22
+    dependencies:
+      opentelemetry-sdk-workers: link:../../packages/opentelemetry-sdk-workers
+    devDependencies:
+      wrangler: 2.0.22
+
+  samples/proto-worker:
     specifiers:
       opentelemetry-sdk-workers: workspace:*
       wrangler: ^2.0.22
@@ -1103,6 +1118,16 @@ packages:
     resolution: {integrity: sha512-HZQYqbiFVWufzCwexrvh694SOim8z2d+xJl5UNamcvQFejLY/2YUtzXHYi3cHdI7PMlS8ejH2slRAOJQ32aNbA==}
     dev: true
 
+  /@types/lodash-es/4.17.6:
+    resolution: {integrity: sha512-R+zTeVUKDdfoRxpAryaQNRKk3105Rrgx2CFRClIgRGaqDTdjsm8h6IYA8ir584W3ePzkZfst5xIgDwYrlh9HLg==}
+    dependencies:
+      '@types/lodash': 4.14.182
+    dev: true
+
+  /@types/lodash/4.14.182:
+    resolution: {integrity: sha512-/THyiqyQAP9AfARo4pF+aCGcyiQ94tX/Is2I7HofNRqoYLgN1PBoOWu2/zTA5zMxzP5EFutMtWtGAFRKUe961Q==}
+    dev: true
+
   /@types/long/4.0.2:
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
 
@@ -1879,6 +1904,10 @@ packages:
   /detect-indent/6.1.0:
     resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}
     engines: {node: '>=8'}
+    dev: true
+
+  /diary/0.3.1:
+    resolution: {integrity: sha512-efOiQYa4S0fNbXs00dDq6wGPIlTCs2TCKDglL+bPhFnmV/4aPfv2mHJ6K3BXey5Fy+4mXNob7QtJYQVIxBpxQA==}
     dev: true
 
   /dir-glob/3.0.1:
@@ -3530,6 +3559,10 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       p-locate: 5.0.0
+    dev: true
+
+  /lodash-es/4.17.21:
+    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
     dev: true
 
   /lodash.ismatch/4.4.0:
