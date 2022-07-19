@@ -63,6 +63,39 @@ export default {
 };
 ```
 
+## Logging
+
+This library exposes a basic logger based on [maraisr/diary](https://github.com/maraisr/diary) via `sdk.log`. By default, however, this logger only logs out to console. To enable support logging exports, you'll need to explicitly add the log exporter:
+
+```typescript
+export default {
+	async fetch(
+		request: Request,
+		env: Env,
+		ctx: ExecutionContext
+	): Promise<Response> {
+		const sdk = new WorkersSDK(request, ctx, {
+			/* This is the service.name */
+			workerName: "worker",
+			/* The OTLP/HTTP JSON Endpoint to send traces */
+			endpoint: env.OTLP_ENDPOINT,
+			logExporter: new OTLPJsonLogExporter({
+				url: env.OTLP_ENDPOINT
+			}),
+		});
+
+		try {
+			sdk.log.info("Test Log!");
+
+			const response = await sdk.fetch("https://httpbin.org/headers/");
+			return sdk.sendResponse(response);
+		} catch (ex) {
+			sdk.captureException(ex);
+		}
+	},
+};
+```
+
 ### OTLP/HTTP Protobuf Support
 
 By default this library uses OTLP/HTTP JSON both for size and simplicity reasons. However, this may not be supported by an import or you might the encoded format. If so, you can import and use the protobuf exporter like so:
@@ -71,7 +104,7 @@ By default this library uses OTLP/HTTP JSON both for size and simplicity reasons
 import "opentelemetry-sdk-workers/performance";
 import { WorkersSDK } from "opentelemetry-sdk-workers";
 /** The proto exporter is packaged seperately due to it's size */
-import { TracesFetchProtoExporter } from "opentelemetry-sdk-workers/dist/TracesFetchProtoExporter";
+import { OTLPProtoTraceExporter } from "opentelemetry-sdk-workers/exporters/OTLPProtoTraceExporter";
 
 export interface Env {
 	OTLP_ENDPOINT: string;
@@ -85,7 +118,7 @@ export default {
 	): Promise<Response> {
 		const sdk = new WorkersSDK(request, ctx, {
 			service: "sample-worker",
-			exporter: new TracesFetchProtoExporter({
+			traceExporter: new OTLPProtoTraceExporter({
 				url: env.OTLP_ENDPOINT
 			})
 		});
