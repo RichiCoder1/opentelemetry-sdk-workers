@@ -12,10 +12,13 @@ export default {
 		ctx: ExecutionContext
 	): Promise<Response> {
 		const otel = new WorkersSDK({
-			workerName: "worker",
+			workerName: "sample-worker",
 			endpoint: env.OTLP_ENDPOINT
 		});
 		const trace = otel.start(request, ctx);
-		return trace.sendResponse(new Response("Hello World!"));
+
+		const url = new URL(request.url);
+		const response = await trace.fetch(`https://httpbin.org${url.pathname}`);
+		return trace.sendResponse(response);
 	},
 };

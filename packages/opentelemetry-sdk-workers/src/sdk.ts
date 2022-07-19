@@ -1,6 +1,6 @@
 import { TracesFetchExporter, TracesFetchExporterConfig } from './TracesFetchExporter';
 import { Resource } from '@opentelemetry/resources';
-import { Context, Sampler, Span, SpanKind, TextMapPropagator } from '@opentelemetry/api';
+import { Context, Sampler, Span, SpanKind, TextMapPropagator, trace } from '@opentelemetry/api';
 import {
     AlwaysOnSampler,
     CompositePropagator,
@@ -130,6 +130,7 @@ export class WorkersSDK {
             },
             context
         );
+        trace.setSpan(context, span);
 
         if ('type' in eventOrRequest) {
             const scheduledEvent = eventOrRequest as ScheduledEvent;
@@ -262,11 +263,11 @@ export class WorkerInstance {
         this.cfContext.waitUntil(this.sdk.end());
     }
 
-    private createSpan(request: Request): Span | undefined {
+    private createSpan(request: Request): Span {
         const method = (request.method ?? 'GET').toUpperCase();
         const spanName = `HTTP ${method}`;
         const url = new URL(request.url);
-        return this.sdk.requestTracer.startSpan(spanName, {
+        const childSpan = this.sdk.requestTracer.startSpan(spanName, {
             kind: SpanKind.CLIENT,
             attributes: {
                 [SemanticAttributes.HTTP_METHOD]: method,
@@ -275,7 +276,9 @@ export class WorkerInstance {
                 [SemanticAttributes.HTTP_HOST]: url.host,
                 [SemanticAttributes.HTTP_SCHEME]: url.protocol.replace(':', ''),
             },
-        });
+        }, this.context);
+        trace.setSpan(this.context, childSpan);
+        return childSpan;
     }
 
     private endSpan(request: Request, span: Span, responseOrError: Response | Error) {
