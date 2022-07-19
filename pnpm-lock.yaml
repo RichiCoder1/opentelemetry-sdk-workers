@@ -58,7 +58,16 @@ importers:
       lodash-es: 4.17.21
       protobufjs-cli: 1.0.0_protobufjs@7.0.0
 
-  samples/worker:
+  samples/basic-worker:
+    specifiers:
+      opentelemetry-sdk-workers: workspace:*
+      wrangler: ^2.0.22
+    dependencies:
+      opentelemetry-sdk-workers: link:../../packages/opentelemetry-sdk-workers
+    devDependencies:
+      wrangler: 2.0.22
+
+  samples/proto-worker:
     specifiers:
       opentelemetry-sdk-workers: workspace:*
       wrangler: ^2.0.22
