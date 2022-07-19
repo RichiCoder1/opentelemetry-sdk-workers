@@ -48,7 +48,7 @@ export default {
 	): Promise<Response> {
 		const sdk = new WorkersSDK(request, ctx, {
 			/* This is the service.name */
-			workerName: "worker",
+			service: "worker",
 			/* The OTLP/HTTP JSON Endpoint to send traces */
 			endpoint: env.OTLP_ENDPOINT
 		});
@@ -76,7 +76,7 @@ export default {
 	): Promise<Response> {
 		const sdk = new WorkersSDK(request, ctx, {
 			/* This is the service.name */
-			workerName: "worker",
+			service: "worker",
 			/* The OTLP/HTTP JSON Endpoint to send traces */
 			endpoint: env.OTLP_ENDPOINT,
 			logExporter: new OTLPJsonLogExporter({
