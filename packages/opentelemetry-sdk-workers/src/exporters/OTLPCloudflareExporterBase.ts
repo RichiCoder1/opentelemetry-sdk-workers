@@ -14,7 +14,7 @@ export type OTLPCloudflareExporterBaseConfig = Omit<
 	"hostname"
 > & {
 	url: string;
-  compress?: boolean;
+	compress?: boolean;
 };
 
 /**
@@ -96,15 +96,15 @@ export abstract class OTLPCloudflareExporterBase<
 		const signal: AbortSignal = (AbortSignal as any).timeout(
 			this.timeoutMillis
 		);
-    const responseBuffer = new Response(body);
-    const compressionStream = new CompressionStream("gzip");
-    const compressedBody = responseBuffer.body.pipeThrough(compressionStream);
+		const responseBuffer = new Response(body);
+		const compressionStream = new CompressionStream("gzip");
+		const compressedBody = responseBuffer.body.pipeThrough(compressionStream);
 
 		const promise = fetch(this.url, {
 			method: "POST",
 			headers: {
 				"content-type": this.contentType,
-        "content-encoding": "gzip",
+				"content-encoding": "gzip",
 				...this.headers
 			},
 			body: compressedBody,

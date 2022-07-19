@@ -12,7 +12,7 @@ type ILogRecord = {
 	body?: IAnyValue;
 	attributes?: IKeyValue[];
 	droppedAttributesCount?: number;
-	flags?: string | null;
+	flags?: number | null;
 	traceId?: string;
 	spanId?: string;
 };

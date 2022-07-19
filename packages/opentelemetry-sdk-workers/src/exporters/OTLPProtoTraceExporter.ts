@@ -1,14 +1,11 @@
 import { appendResourcePathToUrl } from "@opentelemetry/otlp-exporter-base";
 import { ReadableSpan } from "@opentelemetry/sdk-trace-base";
-import {
-	createExportTraceServiceRequest
-} from "@opentelemetry/otlp-transformer";
+import { createExportTraceServiceRequest } from "@opentelemetry/otlp-transformer";
 import { opentelemetry as proto } from "../proto";
 import {
 	OTLPCloudflareExporterBase,
 	OTLPCloudflareExporterBaseConfig
 } from "./OTLPCloudflareExporterBase";
-import { OTLPJsonTraceExporterConfig } from "./OTLPJsonTraceExporter";
 
 const {
 	proto: {
@@ -25,8 +22,8 @@ const DEFAULT_COLLECTOR_RESOURCE_PATH = "v1/traces";
 export interface OTLPProtoTraceExporterConfig
 	extends OTLPCloudflareExporterBaseConfig {}
 
-export class TracesFetchProtoExporter extends OTLPCloudflareExporterBase<
-	OTLPJsonTraceExporterConfig,
+export class OTLPProtoTraceExporter extends OTLPCloudflareExporterBase<
+	OTLPProtoTraceExporterConfig,
 	ReadableSpan,
 	Uint8Array
 > {

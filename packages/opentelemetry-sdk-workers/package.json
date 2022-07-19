@@ -8,8 +8,34 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.mjs"
     },
-    "./performance": "./dist/performance.mjs",
-    "./dist/exporters/OTLPProtoTraceExporter": "./dist/exporters/OTLPProtoTraceExporter.mjs"
+    "./performance": {
+      "types": "./dist/preformance.d.ts",
+      "default": "./dist/performance.mjs"
+    },
+    "./exporters/OTLPProtoTraceExporter": {
+      "types": "./dist/exporters/OTLPProtoTraceExporter.d.ts",
+      "default": "./dist/exporters/OTLPProtoTraceExporter.mjs"
+    },
+    "./exporters/OTLPProtoLogExporter": {
+      "types": "./dist/exporters/OTLPProtoLogExporter.d.ts",
+      "default": "./dist/exporters/OTLPProtoLogExporter.mjs"
+    },
+    "./*": {
+      "default": null
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/types/index.d.ts"
+      ],
+      "exporters/OTLPProtoTraceExporter": [
+        "dist/exporters/OTLPProtoTraceExporter.d.ts"
+      ],
+      "exporters/OTLPProtoLogExporter": [
+        "dist/exporters/OTLPProtoLogExporter.d.ts"
+      ]
+    }
   },
   "types": "dist/index.d.ts",
   "scripts": {

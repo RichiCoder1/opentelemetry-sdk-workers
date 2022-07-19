@@ -15,11 +15,10 @@ import { BasicTracerProvider, SpanExporter, Tracer } from '@opentelemetry/sdk-tr
 import { EventSpanProcessor } from './EventSpanProcessor';
 import { SimpleContext } from './SimpleContext';
 import { SemanticResourceAttributes, SemanticAttributes } from '@opentelemetry/semantic-conventions';
-import { Diary, diary, LogEvent } from "diary";
+import { Diary, diary, LogEvent, enable } from "diary";
 import { HeadersTextMapper } from './HeadersTextExtractor';
 import { cloneRequest } from './utils';
 import { LogRecord } from './types';
-import { LogsFetchJsonExporter } from './LogsFetchJsonExporter';
 import { LogExporter } from './exporters/LogExporter';
 
 const headersTextMapper = new HeadersTextMapper();
@@ -37,7 +36,7 @@ type NodeSdkConfigBase = {
     resource?: Resource;
     sampler?: Sampler;
     logLevel?: DiagLogLevel;
-    logExporter?: LogsFetchJsonExporter;
+    logExporter?: LogExporter;
 };
 
 type NodeSdkBuiltInExporter = {
@@ -91,6 +90,7 @@ export class WorkersSDK {
 
         const rawHeaders = env["OTEL_EXPORTER_OTLP_TRACES_HEADERS"] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '';
         return new WorkersSDK(eventOrRequest, ctx, {
+            service: attributes[SemanticResourceAttributes.SERVICE_NAME],
             resource,
             traceExporter: new OTLPJsonTraceExporter({
                 url: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] ?? env["OTEL_EXPORTER_OTLP_ENDPOINT"],
@@ -141,8 +141,9 @@ export class WorkersSDK {
         this.spanContext = spanContext;
 
         this.logExporter = config.logExporter;
-        this.logExportEnabled = !config.logExporter;
-        this.log = diary(resource.attributes[SemanticResourceAttributes.SERVICE_NAME].toString(), (event) => {
+        this.logExportEnabled = config.logExporter != null;
+        enable("*");
+        this.log = diary(config.service, (event) => {
             const consoleLevel = event.level === 'fatal' ? 'error' : event.level;
             console[consoleLevel](event.message, ...event.extra);
 
