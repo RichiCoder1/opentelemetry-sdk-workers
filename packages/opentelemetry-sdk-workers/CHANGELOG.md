@@ -1,5 +1,17 @@
 # opentelemetry-sdk-workers
 
+## 0.4.0
+
+### Minor Changes
+
+- [`10d3aa8`](https://github.com/RichiCoder1/opentelemetry-sdk-workers/commit/10d3aa87a3a9675a5c3460759518b6bb74386967) Thanks [@RichiCoder1](https://github.com/RichiCoder1)! - Added OTLP/HTTP Protobuf support as an optional exporter
+
+* [#8](https://github.com/RichiCoder1/opentelemetry-sdk-workers/pull/8) [`cd0f07b`](https://github.com/RichiCoder1/opentelemetry-sdk-workers/commit/cd0f07bc77116389394907f1dafb7d874b8d1e80) Thanks [@RichiCoder1](https://github.com/RichiCoder1)! - Reorganized exporters and added exporter base for extensibility.
+
+  Exporters are now in `exporters/` and implement a Cloudflare fetch-based exporter base.
+
+- [#8](https://github.com/RichiCoder1/opentelemetry-sdk-workers/pull/8) [`cd0f07b`](https://github.com/RichiCoder1/opentelemetry-sdk-workers/commit/cd0f07bc77116389394907f1dafb7d874b8d1e80) Thanks [@RichiCoder1](https://github.com/RichiCoder1)! - Add compression support to outgoing requests
+
 ## 0.3.0
 
 ### Minor Changes
