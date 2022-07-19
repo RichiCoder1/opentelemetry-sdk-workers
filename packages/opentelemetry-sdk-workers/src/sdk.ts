@@ -1,8 +1,9 @@
 import { TracesFetchExporter, TracesFetchExporterConfig } from './TracesFetchExporter';
 import { Resource } from '@opentelemetry/resources';
-import { Context, Sampler, Span, SpanKind, TextMapPropagator, trace } from '@opentelemetry/api';
+import { Context, DiagLogLevel, Sampler, Span, SpanKind, TextMapPropagator, trace, } from '@opentelemetry/api';
 import {
     AlwaysOnSampler,
+    baggageUtils,
     CompositePropagator,
     W3CBaggagePropagator,
     W3CTraceContextPropagator,
@@ -23,12 +24,13 @@ type NodeSdkConfigBase = {
     /**
      * The current worker's name. Corresponds to `service.name` resource attribute.
      */
-    readonly workerName: string;
+    readonly service?: string;
     /**
      * Provide default resource attributes.
      */
     resource?: Resource;
     sampler?: Sampler;
+    logLevel?: DiagLogLevel;
 };
 
 type NodeSdkBuiltInExporter = {
@@ -45,28 +47,59 @@ type NodeSdkExternalExporter = {
 type NodeSdkConfig = NodeSdkConfigBase & (NodeSdkBuiltInExporter | NodeSdkExternalExporter);
 
 export class WorkersSDK {
-    private resource: Resource;
-    private traceProvider: BasicTracerProvider;
-    private traceExporter: SpanExporter;
-    private sampler: Sampler | null;
-    private spanProcessor: EventSpanProcessor;
+    private readonly traceProvider: BasicTracerProvider;
+    private readonly traceExporter: SpanExporter;
+    private readonly requestTracer: Tracer;
+    private readonly propagator: TextMapPropagator;
 
-    public readonly requestTracer: Tracer;
-    public readonly propagator: TextMapPropagator;
-    public allowedHeaders: (string | RegExp)[] = ['user-agent', 'cf-ray'];
-    public allowedSearch: RegExp | (string | RegExp)[] = /.*/;
+    private readonly span: Span;
+    private readonly spanContext: Context;
+    private readonly startTime: number;
 
-    public constructor(config: NodeSdkConfig) {
+    #flushed = false;
+
+    readonly allowedHeaders: (string | RegExp)[] = ['user-agent', 'cf-ray'];
+    readonly allowedSearch: RegExp | (string | RegExp)[] = /.*/;
+
+    public static fromEnv(eventOrRequest: Request | ScheduledEvent, env: Record<string, string>, ctx: CfContext) {
+        const rawAttributes = env["OTEL_RESOURCE_ATTRIBUTES"];
+        const attributes = this.#parseAttributes(rawAttributes);
+
+        const serviceName  = env["OTEL_SERVICE_NAME"]; 
+        if (serviceName) {
+            attributes[SemanticResourceAttributes.SERVICE_NAME] = serviceName;
+        }
+
+        const resource = new Resource(attributes).merge(new Resource({
+            [SemanticResourceAttributes.TELEMETRY_SDK_NAME]: 'opentelemetry-sdk-workers',
+            [SemanticResourceAttributes.CLOUD_PROVIDER]: 'cloudflare',
+            [SemanticResourceAttributes.CLOUD_PLATFORM]: 'workers',
+            [SemanticResourceAttributes.FAAS_NAME]: attributes[SemanticResourceAttributes.SERVICE_NAME],
+            [SemanticResourceAttributes.PROCESS_RUNTIME_NAME]: 'Cloudflare-Workers',
+        }));
+
+        const rawHeaders = env["OTEL_EXPORTER_OTLP_TRACES_HEADERS"] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '';
+        return new WorkersSDK(eventOrRequest, ctx, {
+            resource,
+            exporter: new TracesFetchExporter({
+                url: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] ?? env["OTEL_EXPORTER_OTLP_ENDPOINT"],
+                headers: baggageUtils.parseKeyPairsIntoRecord(rawHeaders)
+            })
+        });
+    }
+
+    public constructor(private eventOrRequest: Request | ScheduledEvent, private ctx: CfContext, config: NodeSdkConfig) {
         /**
          * Cloudflare workers provides basically no discoverable metadata to workers.
          */
-        this.resource =
+        const resource =
             config.resource ??
             new Resource({
+                [SemanticResourceAttributes.TELEMETRY_SDK_NAME]: 'opentelemetry-sdk-workers',
                 [SemanticResourceAttributes.CLOUD_PROVIDER]: 'cloudflare',
                 [SemanticResourceAttributes.CLOUD_PLATFORM]: 'workers',
-                [SemanticResourceAttributes.SERVICE_NAME]: config.workerName,
-                [SemanticResourceAttributes.FAAS_NAME]: config.workerName,
+                [SemanticResourceAttributes.SERVICE_NAME]: config.service,
+                [SemanticResourceAttributes.FAAS_NAME]: config.service,
                 [SemanticResourceAttributes.PROCESS_RUNTIME_NAME]: 'Cloudflare-Workers',
             });
 
@@ -79,68 +112,163 @@ export class WorkersSDK {
             });
         }
 
-        this.sampler = config.sampler ?? new AlwaysOnSampler();
+        const sampler = config.sampler ?? new AlwaysOnSampler();
         this.traceProvider = new BasicTracerProvider({
-            sampler: this.sampler,
-            resource: this.resource,
+            sampler: sampler,
+            resource: resource,
         });
-        this.spanProcessor = new EventSpanProcessor(this.traceExporter);
-        this.traceProvider.addSpanProcessor(this.spanProcessor);
+    
+        const spanProcessor = new EventSpanProcessor(this.traceExporter);
+        this.traceProvider.addSpanProcessor(spanProcessor);
         this.propagator = new CompositePropagator({
             propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()],
         });
         this.requestTracer = this.traceProvider.getTracer('opentelemetry-sdk-workers', '0.1.0');
+
+        const { span, spanContext } = this.initSpan();
+        this.span = span;
+        this.spanContext = spanContext;
     }
 
-    public start(event: ScheduledEvent, context: CfContext): WorkerInstance;
-    public start(request: Request, context: CfContext): WorkerInstance;
-    public start(eventOrRequest: Request | ScheduledEvent, cfContext: CfContext) {
-        const [span, context] = this.getSpan(eventOrRequest);
-        return new WorkerInstance(this, cfContext, span, context);
+    public async fetch(request: Request | string, requestInitr?: RequestInit | Request): Promise<Response> {
+        let downstreamRequest: Request;
+        if (request instanceof Request) {
+            downstreamRequest = cloneRequest(request);
+        } else {
+            downstreamRequest = new Request(request, requestInitr);
+        }
+
+        const childSpan = this.createSpan(downstreamRequest);
+        this.propagator.inject(this.spanContext, downstreamRequest.headers, headersTextMapper);
+
+        if (this.#flushed) {
+            console.warn(
+                'Fetch request sent after worker spans were flushed. Avoid using instance.fetch after calling sendResponse or captureException.'
+            );
+        }
+        try {
+            const response = await _globalThis.fetch(downstreamRequest);
+            this.endSpan(downstreamRequest, childSpan, response);
+            return response;
+        } catch (reason) {
+            this.endSpan(downstreamRequest, childSpan, reason);
+            return reason;
+        }
+    }
+
+    public sendResponse(response: Response): Response {
+        this.span.setAttributes({
+            [SemanticAttributes.HTTP_STATUS_CODE]: response.status,
+        });
+        for (const headerKey of response.headers.keys()) {
+            if (headerKey === 'set-cookie') {
+                continue;
+            }
+            if (
+                !this.allowedHeaders.some((allowed) =>
+                    typeof allowed === 'string' ? headerKey === allowed : allowed.test(headerKey)
+                )
+            ) {
+                continue;
+            }
+            this.span.setAttribute(`http.response.header.${headerKey.toLowerCase()}`, [
+                response.headers.get(headerKey),
+            ]);
+        }
+
+        let endTime = Date.now();
+        if (this.startTime === endTime) {
+            endTime += 0.01;
+        }
+
+        this.span.end(endTime);
+        this.ctx.waitUntil(this.end());
+        return response;
+    }
+    public res = this.sendResponse.bind(this);
+
+    public captureException(ex: Error): void {
+        this.span.recordException(ex);
+
+        let endTime = Date.now();
+        if (this.startTime === endTime) {
+            endTime += 0.01;
+        }
+        this.span.end(endTime);
+        this.ctx.waitUntil(this.end());
+    }
+
+    private createSpan(request: Request): Span {
+        const method = (request.method ?? 'GET').toUpperCase();
+        const spanName = `HTTP ${method}`;
+        const url = new URL(request.url);
+        const childSpan = this.requestTracer.startSpan(spanName, {
+            kind: SpanKind.CLIENT,
+            attributes: {
+                [SemanticAttributes.HTTP_METHOD]: method,
+                [SemanticAttributes.HTTP_URL]: request.url,
+                [SemanticAttributes.HTTP_TARGET]: `${url.pathname}${url.search}`,
+                [SemanticAttributes.HTTP_HOST]: url.host,
+                [SemanticAttributes.HTTP_SCHEME]: url.protocol.replace(':', ''),
+            },
+        }, this.spanContext);
+        trace.setSpan(this.spanContext, childSpan);
+        return childSpan;
+    }
+
+    private endSpan(request: Request, span: Span, responseOrError: Response | Error) {
+        const url = new URL('url' in responseOrError ? responseOrError.url : request.url);
+        if (responseOrError instanceof Response) {
+            span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, responseOrError.status);
+        } else {
+            span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, responseOrError['status'] ?? 0);
+            span.recordException(responseOrError, new Date());
+        }
+        span.end(new Date());
     }
 
     public end() {
-        return this.spanProcessor.forceFlush();
+        return this.traceProvider.forceFlush();
     }
 
-    private getSpan(eventOrRequest: Request | ScheduledEvent) {
+    private initSpan() {
         const context = new SimpleContext();
 
         let name: string;
-        if ('type' in eventOrRequest) {
-            const scheduledEvent = eventOrRequest as ScheduledEvent;
+        if ('type' in this.eventOrRequest) {
+            const scheduledEvent = this.eventOrRequest as ScheduledEvent;
             name = `scheduled ${scheduledEvent.cron ?? scheduledEvent.scheduledTime}`;
         } else {
-            if (!eventOrRequest) {
+            if (!this.eventOrRequest) {
                 throw new Error('You must provide the request to start for fetch events!');
             }
-            const url = new URL(eventOrRequest.url);
-            name = `fetch ${eventOrRequest.method} ${url.pathname}`;
+            const url = new URL(this.eventOrRequest.url);
+            name = `fetch ${this.eventOrRequest.method} ${url.pathname}`;
 
             // TODO: We should toggle or allow an opt-in for parent trace extraction maybe
-            this.propagator.extract(context, eventOrRequest.headers, headersTextMapper);
+            this.propagator.extract(context, this.eventOrRequest.headers, headersTextMapper);
         }
 
         const span = this.requestTracer.startSpan(
             name,
             {
                 // TODO: What is the right SpanKind for cron jobs?
-                kind: 'type' in eventOrRequest ? SpanKind.SERVER : SpanKind.INTERNAL,
+                kind: 'type' in this.eventOrRequest ? SpanKind.SERVER : SpanKind.INTERNAL,
                 startTime: Date.now(),
             },
             context
         );
         trace.setSpan(context, span);
 
-        if ('type' in eventOrRequest) {
-            const scheduledEvent = eventOrRequest as ScheduledEvent;
+        if ('type' in this.eventOrRequest) {
+            const scheduledEvent = this.eventOrRequest as ScheduledEvent;
             span.setAttribute(SemanticAttributes.FAAS_TRIGGER, 'timer');
             span.setAttribute(SemanticAttributes.FAAS_TIME, scheduledEvent.scheduledTime);
             if (scheduledEvent.cron) {
                 span.setAttribute(SemanticAttributes.FAAS_CRON, scheduledEvent.cron);
             }
         } else {
-            const request = eventOrRequest as Request;
+            const request = this.eventOrRequest as Request;
             const url = new URL(request.url);
             const searchParams = new URLSearchParams();
             for (const [key, value] of url.searchParams) {
@@ -186,109 +314,68 @@ export class WorkersSDK {
                 span.setAttribute(`http.request.header.${headerKey.toLowerCase()}`, [request.headers.get(headerKey)]);
             }
         }
-        return [span, context] as const;
-    }
-}
 
-export class WorkerInstance {
-    private flushed = false;
-    private startTime = Date.now();
-
-    constructor(private sdk: WorkersSDK, private cfContext: CfContext, public span: Span, private context: Context) {}
-
-    public async fetch(request: Request | string, requestInitr?: RequestInit | Request): Promise<Response> {
-        let downstreamRequest: Request;
-        if (request instanceof Request) {
-            downstreamRequest = cloneRequest(request);
-        } else {
-            downstreamRequest = new Request(request, requestInitr);
-        }
-
-        const childSpan = this.createSpan(downstreamRequest);
-        this.sdk.propagator.inject(this.context, downstreamRequest.headers, headersTextMapper);
-
-        if (this.flushed) {
-            console.warn(
-                'Fetch request sent after worker spans were flushed. Avoid using instance.fetch after calling sendResponse or captureException.'
-            );
-        }
-        try {
-            const response = await _globalThis.fetch(downstreamRequest);
-            this.endSpan(downstreamRequest, childSpan, response);
-            return response;
-        } catch (reason) {
-            this.endSpan(downstreamRequest, childSpan, reason);
-            return reason;
-        }
+        return { span, spanContext: context };
     }
 
-    public sendResponse(response: Response): Response {
-        this.span.setAttributes({
-            [SemanticAttributes.HTTP_STATUS_CODE]: response.status,
-        });
-        for (const headerKey of response.headers.keys()) {
-            if (headerKey === 'set-cookie') {
+    /**
+     * Implementation of OTEL_RESOURCE_ATTRIBUTES adapted from @opentelemetry/api's EnvDetector.
+     * @param rawEnvAttributes OTEL_RESOURCE_ATTRIBUTES Environment Variable
+     * @returns parses attributes
+     */
+    static #parseAttributes(rawEnvAttributes: string) {
+        if (!rawEnvAttributes)
+            return {};
+        const attributes = {};
+        const rawAttributes = rawEnvAttributes.split(',', -1);
+        for (const rawAttribute of rawAttributes) {
+            const keyValuePair = rawAttribute.split('=', -1);
+            if (keyValuePair.length !== 2) {
                 continue;
             }
-            if (
-                !this.sdk.allowedHeaders.some((allowed) =>
-                    typeof allowed === 'string' ? headerKey === allowed : allowed.test(headerKey)
-                )
-            ) {
-                continue;
+            let [key, value] = keyValuePair;
+            // Leading and trailing whitespaces are trimmed.
+            key = key.trim();
+            value = value.trim().split('^"|"$').join('');
+            if (!this.#isValidAndNotEmptyKey(key)) {
+                throw new Error(`Attribute key should be a ASCII string with a length greater than 0 and not exceed 255 characters.`);
             }
-            this.span.setAttribute(`http.response.header.${headerKey.toLowerCase()}`, [
-                response.headers.get(headerKey),
-            ]);
+            if (!this.#isValidAttributeKey(value)) {
+                throw new Error(`Attribute value should be a ASCII string with a length not exceed 255 characters`);
+            }
+            attributes[key] = value;
         }
-
-        let endTime = Date.now();
-        if (this.startTime === endTime) {
-            endTime += 0.01;
-        }
-
-        this.span.end(endTime);
-        this.cfContext.waitUntil(this.sdk.end());
-        return response;
+        return attributes;
     }
 
-    public captureException(ex: Error): void {
-        this.span.recordException(ex);
-
-        let endTime = Date.now();
-        if (this.startTime === endTime) {
-            endTime += 0.01;
-        }
-        this.span.end(endTime);
-        this.cfContext.waitUntil(this.sdk.end());
+    /**
+     * Determines whether the given String is a valid printable ASCII string with
+     * a length not exceed _MAX_LENGTH characters.
+     *
+     * @param str The String to be validated.
+     * @returns Whether the String is valid.
+     */
+    static #isValidAttributeKey(name: string) {
+        return name.length <= 255 && this.#isPrintableString(name);
     }
 
-    private createSpan(request: Request): Span {
-        const method = (request.method ?? 'GET').toUpperCase();
-        const spanName = `HTTP ${method}`;
-        const url = new URL(request.url);
-        const childSpan = this.sdk.requestTracer.startSpan(spanName, {
-            kind: SpanKind.CLIENT,
-            attributes: {
-                [SemanticAttributes.HTTP_METHOD]: method,
-                [SemanticAttributes.HTTP_URL]: request.url,
-                [SemanticAttributes.HTTP_TARGET]: `${url.pathname}${url.search}`,
-                [SemanticAttributes.HTTP_HOST]: url.host,
-                [SemanticAttributes.HTTP_SCHEME]: url.protocol.replace(':', ''),
-            },
-        }, this.context);
-        trace.setSpan(this.context, childSpan);
-        return childSpan;
-    }
-
-    private endSpan(request: Request, span: Span, responseOrError: Response | Error) {
-        const url = new URL('url' in responseOrError ? responseOrError.url : request.url);
-        if (responseOrError instanceof Response) {
-            span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, responseOrError.status);
-        } else {
-            span.setAttribute(SemanticAttributes.HTTP_STATUS_CODE, responseOrError['status'] ?? 0);
-            span.recordException(responseOrError, new Date());
+    static #isPrintableString(str: string) {
+        for (let i = 0; i < str.length; i++) {
+            const ch = str.charAt(i);
+            if (ch <= ' ' || ch >= '~') {
+                return false;
+            }
         }
-        span.end(new Date());
+        return true;
+    }
+    /**
+     * Determines whether the given String is a valid printable ASCII string with
+     * a length greater than 0 and not exceed _MAX_LENGTH characters.
+     *
+     * @param str The String to be validated.
+     * @returns Whether the String is valid and not empty.
+     */
+    static #isValidAndNotEmptyKey(str: string) {
+        return str.length > 0 && this.#isValidAttributeKey(str);
     }
 }
