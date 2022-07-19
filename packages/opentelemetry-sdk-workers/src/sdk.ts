@@ -5,6 +5,7 @@ import {
     AlwaysOnSampler,
     baggageUtils,
     CompositePropagator,
+    hrTime,
     W3CBaggagePropagator,
     W3CTraceContextPropagator,
     _globalThis,
@@ -13,8 +14,11 @@ import { BasicTracerProvider, SpanExporter, Tracer } from '@opentelemetry/sdk-tr
 import { EventSpanProcessor } from './EventSpanProcessor';
 import { SimpleContext } from './SimpleContext';
 import { SemanticResourceAttributes, SemanticAttributes } from '@opentelemetry/semantic-conventions';
+import { Diary, diary, LogEvent } from "diary";
 import { HeadersTextMapper } from './HeadersTextExtractor';
 import { cloneRequest } from './utils';
+import { LogRecord } from './types';
+import { LogsFetchJsonExporter } from './LogsFetchJsonExporter';
 
 const headersTextMapper = new HeadersTextMapper();
 
@@ -31,6 +35,7 @@ type NodeSdkConfigBase = {
     resource?: Resource;
     sampler?: Sampler;
     logLevel?: DiagLogLevel;
+    logExporter?: LogsFetchJsonExporter;
 };
 
 type NodeSdkBuiltInExporter = {
@@ -41,25 +46,29 @@ type NodeSdkBuiltInExporter = {
 } & Omit<TracesFetchExporterConfig, 'url'>;
 
 type NodeSdkExternalExporter = {
-    exporter: SpanExporter;
+    traceExporter: SpanExporter;
 };
 
 type NodeSdkConfig = NodeSdkConfigBase & (NodeSdkBuiltInExporter | NodeSdkExternalExporter);
 
 export class WorkersSDK {
+
+    public readonly log: Diary;
+    public readonly logExportEnabled: boolean;
+
     private readonly traceProvider: BasicTracerProvider;
     private readonly traceExporter: SpanExporter;
+    private readonly logExporter?: LogsFetchJsonExporter;
     private readonly requestTracer: Tracer;
     private readonly propagator: TextMapPropagator;
-
     private readonly span: Span;
     private readonly spanContext: Context;
     private readonly startTime: number;
+    private readonly allowedHeaders: (string | RegExp)[] = ['user-agent', 'cf-ray'];
+    private readonly allowedSearch: RegExp | (string | RegExp)[] = /.*/;
 
     #flushed = false;
-
-    readonly allowedHeaders: (string | RegExp)[] = ['user-agent', 'cf-ray'];
-    readonly allowedSearch: RegExp | (string | RegExp)[] = /.*/;
+    #logs: LogRecord[] = [];
 
     public static fromEnv(eventOrRequest: Request | ScheduledEvent, env: Record<string, string>, ctx: CfContext) {
         const rawAttributes = env["OTEL_RESOURCE_ATTRIBUTES"];
@@ -81,7 +90,7 @@ export class WorkersSDK {
         const rawHeaders = env["OTEL_EXPORTER_OTLP_TRACES_HEADERS"] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '';
         return new WorkersSDK(eventOrRequest, ctx, {
             resource,
-            exporter: new TracesFetchJsonExporter({
+            traceExporter: new TracesFetchJsonExporter({
                 url: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] ?? env["OTEL_EXPORTER_OTLP_ENDPOINT"],
                 headers: baggageUtils.parseKeyPairsIntoRecord(rawHeaders)
             })
@@ -103,8 +112,8 @@ export class WorkersSDK {
                 [SemanticResourceAttributes.PROCESS_RUNTIME_NAME]: 'Cloudflare-Workers',
             });
 
-        if ('exporter' in config) {
-            this.traceExporter = config.exporter;
+        if ('traceExporter' in config) {
+            this.traceExporter = config.traceExporter;
         } else {
             this.traceExporter = new TracesFetchJsonExporter({
                 url: config.endpoint,
@@ -128,6 +137,17 @@ export class WorkersSDK {
         const { span, spanContext } = this.initSpan();
         this.span = span;
         this.spanContext = spanContext;
+
+        this.logExporter = config.logExporter;
+        this.logExportEnabled = !config.logExporter;
+        this.log = diary(resource.attributes[SemanticResourceAttributes.SERVICE_NAME].toString(), (event) => {
+            const consoleLevel = event.level === 'fatal' ? 'error' : event.level;
+            console[consoleLevel](event.message, ...event.extra);
+
+            if (this.logExporter) {
+                this.#ingestEvent(event);
+            }
+        });
     }
 
     public async fetch(request: Request | string, requestInitr?: RequestInit | Request): Promise<Response> {
@@ -229,7 +249,13 @@ export class WorkersSDK {
 
     public async end() {
         try {
-            return await this.traceProvider.forceFlush();
+            const exportPromises = [
+                this.traceProvider.forceFlush(),
+            ];
+            if (this.logExportEnabled) {
+                exportPromises.push(this.logExporter!.export(this.#logs));
+            }
+            await Promise.all(exportPromises);
         } catch (error) {
             console.error("Failed to flush spans:", error);
         }
@@ -320,6 +346,37 @@ export class WorkersSDK {
         }
 
         return { span, spanContext: context };
+    }
+
+    #ingestEvent(event: LogEvent) {
+        const { spanId, traceId, traceFlags } = this.span.spanContext();
+        const level = event.level === "log" ? "info" : event.level;
+        let severityNumber: number;
+        switch (level) {
+            case "debug": severityNumber = 5; break;
+            case "info": severityNumber = 9; break;
+            case "warn": severityNumber = 13; break;
+            case "error": severityNumber = 17; break;
+            case "fatal": severityNumber = 21; break;
+        }
+
+        this.#logs.push({
+            timestamp: hrTime(Date.now()),
+            observedTimestamp: hrTime(Date.now()),
+            spanId,
+            traceId,
+            traceFlags,
+            severityText: level.toUpperCase(),
+            severityNumber: severityNumber,
+            body: event.message,
+            instrumentationLibrary: {
+                name: "opentelemetry-sdk-workers",
+            },
+            resource: this.traceProvider.resource,
+            attributes: {
+                "log.extra": event.extra
+            }
+        });
     }
 
     /**

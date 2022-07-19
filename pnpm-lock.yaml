@@ -36,6 +36,7 @@ importers:
       '@opentelemetry/resources': ^1.4.0
       '@opentelemetry/sdk-trace-base': ^1.4.0
       '@opentelemetry/semantic-conventions': ^1.4.0
+      diary: ^0.3.1
       protobufjs: ^7.0.0
       protobufjs-cli: ^1.0.0
     dependencies:
@@ -50,6 +51,7 @@ importers:
     devDependencies:
       '@cloudflare/workers-types': 3.14.1
       '@opentelemetry/instrumentation': 0.30.0_@opentelemetry+api@1.1.0
+      diary: 0.3.1
       protobufjs-cli: 1.0.0_protobufjs@7.0.0
 
   samples/worker:
@@ -1879,6 +1881,10 @@ packages:
   /detect-indent/6.1.0:
     resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}
     engines: {node: '>=8'}
+    dev: true
+
+  /diary/0.3.1:
+    resolution: {integrity: sha512-efOiQYa4S0fNbXs00dDq6wGPIlTCs2TCKDglL+bPhFnmV/4aPfv2mHJ6K3BXey5Fy+4mXNob7QtJYQVIxBpxQA==}
     dev: true
 
   /dir-glob/3.0.1:

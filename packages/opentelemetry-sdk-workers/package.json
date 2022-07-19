@@ -65,6 +65,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^3.14.1",
     "@opentelemetry/instrumentation": "^0.30.0",
+    "diary": "^0.3.1",
     "protobufjs-cli": "^1.0.0"
   }
 }
