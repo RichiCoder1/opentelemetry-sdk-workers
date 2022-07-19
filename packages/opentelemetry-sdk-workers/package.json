@@ -9,7 +9,7 @@
       "default": "./dist/index.mjs"
     },
     "./performance": "./dist/performance.mjs",
-    "./dist/TracesFetchProtoExporter": "./dist/TracesFetchProtoExporter.mjs"
+    "./dist/exporters/OTLPProtoTraceExporter": "./dist/exporters/OTLPProtoTraceExporter.mjs"
   },
   "types": "dist/index.d.ts",
   "scripts": {
@@ -65,7 +65,9 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^3.14.1",
     "@opentelemetry/instrumentation": "^0.30.0",
+    "@types/lodash-es": "^4.17.6",
     "diary": "^0.3.1",
+    "lodash-es": "^4.17.21",
     "protobufjs-cli": "^1.0.0"
   }
 }

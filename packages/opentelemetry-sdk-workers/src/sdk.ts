@@ -1,10 +1,11 @@
-import { TracesFetchJsonExporter, TracesFetchExporterConfig } from './TracesFetchJsonExporter';
+import { OTLPJsonTraceExporter, OTLPJsonTraceExporterConfig } from './exporters/OTLPJsonTraceExporter';
 import { Resource } from '@opentelemetry/resources';
 import { Context, DiagLogLevel, Sampler, Span, SpanKind, TextMapPropagator, trace, } from '@opentelemetry/api';
 import {
     AlwaysOnSampler,
     baggageUtils,
     CompositePropagator,
+    ExportResultCode,
     hrTime,
     W3CBaggagePropagator,
     W3CTraceContextPropagator,
@@ -19,6 +20,7 @@ import { HeadersTextMapper } from './HeadersTextExtractor';
 import { cloneRequest } from './utils';
 import { LogRecord } from './types';
 import { LogsFetchJsonExporter } from './LogsFetchJsonExporter';
+import { LogExporter } from './exporters/LogExporter';
 
 const headersTextMapper = new HeadersTextMapper();
 
@@ -43,7 +45,7 @@ type NodeSdkBuiltInExporter = {
      * The OTLP HTTP Endpoint to send traces.
      */
     endpoint: string;
-} & Omit<TracesFetchExporterConfig, 'url'>;
+} & Omit<OTLPJsonTraceExporterConfig, 'url'>;
 
 type NodeSdkExternalExporter = {
     traceExporter: SpanExporter;
@@ -58,7 +60,7 @@ export class WorkersSDK {
 
     private readonly traceProvider: BasicTracerProvider;
     private readonly traceExporter: SpanExporter;
-    private readonly logExporter?: LogsFetchJsonExporter;
+    private readonly logExporter?: LogExporter;
     private readonly requestTracer: Tracer;
     private readonly propagator: TextMapPropagator;
     private readonly span: Span;
@@ -74,7 +76,7 @@ export class WorkersSDK {
         const rawAttributes = env["OTEL_RESOURCE_ATTRIBUTES"];
         const attributes = this.#parseAttributes(rawAttributes);
 
-        const serviceName  = env["OTEL_SERVICE_NAME"]; 
+        const serviceName  = env["OTEL_SERVICE_NAME"];
         if (serviceName) {
             attributes[SemanticResourceAttributes.SERVICE_NAME] = serviceName;
         }
@@ -90,7 +92,7 @@ export class WorkersSDK {
         const rawHeaders = env["OTEL_EXPORTER_OTLP_TRACES_HEADERS"] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '';
         return new WorkersSDK(eventOrRequest, ctx, {
             resource,
-            traceExporter: new TracesFetchJsonExporter({
+            traceExporter: new OTLPJsonTraceExporter({
                 url: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] ?? env["OTEL_EXPORTER_OTLP_ENDPOINT"],
                 headers: baggageUtils.parseKeyPairsIntoRecord(rawHeaders)
             })
@@ -115,7 +117,7 @@ export class WorkersSDK {
         if ('traceExporter' in config) {
             this.traceExporter = config.traceExporter;
         } else {
-            this.traceExporter = new TracesFetchJsonExporter({
+            this.traceExporter = new OTLPJsonTraceExporter({
                 url: config.endpoint,
                 ...config,
             });
@@ -126,7 +128,7 @@ export class WorkersSDK {
             sampler: sampler,
             resource: resource,
         });
-    
+
         const spanProcessor = new EventSpanProcessor(this.traceExporter);
         this.traceProvider.addSpanProcessor(spanProcessor);
         this.propagator = new CompositePropagator({
@@ -253,7 +255,15 @@ export class WorkersSDK {
                 this.traceProvider.forceFlush(),
             ];
             if (this.logExportEnabled) {
-                exportPromises.push(this.logExporter!.export(this.#logs));
+                exportPromises.push(new Promise<void>((resolve, reject) => {
+                    this.logExporter!.export(this.#logs, (result) => {
+                        if (result.code === ExportResultCode.SUCCESS) {
+                            resolve();
+                        } else {
+                            reject(result.error);
+                        }
+                    })
+                }));
             }
             await Promise.all(exportPromises);
         } catch (error) {
