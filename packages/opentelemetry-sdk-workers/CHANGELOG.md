@@ -1,5 +1,11 @@
 # opentelemetry-sdk-workers
 
+## 0.3.0
+
+### Minor Changes
+
+- [`bbe5dd6`](https://github.com/RichiCoder1/opentelemetry-sdk-workers/commit/bbe5dd6614649bf19797570bc68b2a926f3e24c1) Thanks [@RichiCoder1](https://github.com/RichiCoder1)! - Republishing to solve publishing issues.
+
 ## 0.2.0
 
 ### Minor Changes
