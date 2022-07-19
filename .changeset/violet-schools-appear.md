@@ -1,5 +1,5 @@
 ---
-"opentelemetry-sdk-workers": patch
+"opentelemetry-sdk-workers": minor
 ---
 
-Force republish
+Republishing to solve publishing issues.
