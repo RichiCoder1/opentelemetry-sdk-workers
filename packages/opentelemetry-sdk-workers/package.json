@@ -3,14 +3,34 @@
   "version": "0.3.0",
   "description": "Open Telemetry Cloudflare Workers Library. Provides a basic sdk for instrumenting workers.",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.mjs",
-    "./performance": "./dist/performance.mjs"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.mjs"
+    },
+    "./performance": "./dist/performance.mjs",
+    "./dist/TracesFetchProtoExporter": "./dist/TracesFetchProtoExporter.mjs"
   },
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsup",
-    "watch": "tsup --watch"
+    "watch": "tsup --watch",
+    "proto:build": "pbjs --target static-module --wrap es6 --path proto/opentelemetry/proto common/v1/common.proto resource/v1/resource.proto trace/v1/trace.proto logs/v1/logs.proto collector/logs/v1/logs_service.proto collector/trace/v1/trace_service.proto --out src/proto.js",
+    "proto:types": "pbts --out src/proto.d.ts src/proto.js"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "dependsOn": [
+          "proto:types"
+        ]
+      },
+      "proto:types": {
+        "dependsOn": [
+          "proto:build"
+        ]
+      }
+    }
   },
   "keywords": [
     "otel",
@@ -39,10 +59,12 @@
     "@opentelemetry/otlp-transformer": "^0.30.0",
     "@opentelemetry/resources": "^1.4.0",
     "@opentelemetry/sdk-trace-base": "^1.4.0",
-    "@opentelemetry/semantic-conventions": "^1.4.0"
+    "@opentelemetry/semantic-conventions": "^1.4.0",
+    "protobufjs": "^7.0.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.14.1",
-    "@opentelemetry/instrumentation": "^0.30.0"
+    "@opentelemetry/instrumentation": "^0.30.0",
+    "protobufjs-cli": "^1.0.0"
   }
 }

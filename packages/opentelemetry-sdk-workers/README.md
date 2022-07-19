@@ -62,3 +62,38 @@ export default {
 	},
 };
 ```
+
+### OTLP/HTTP Protobuf Support
+
+By default this library uses OTLP/HTTP JSON both for size and simplicity reasons. However, this may not be supported by an import or you might the encoded format. If so, you can import and use the protobuf exporter like so:
+
+```typescript
+import "opentelemetry-sdk-workers/performance";
+import { WorkersSDK } from "opentelemetry-sdk-workers";
+/** The proto exporter is packaged seperately due to it's size */
+import { TracesFetchProtoExporter } from "opentelemetry-sdk-workers/dist/TracesFetchProtoExporter";
+
+export interface Env {
+	OTLP_ENDPOINT: string;
+}
+
+export default {
+	async fetch(
+		request: Request,
+		env: Env,
+		ctx: ExecutionContext
+	): Promise<Response> {
+		const sdk = new WorkersSDK(request, ctx, {
+			service: "sample-worker",
+			exporter: new TracesFetchProtoExporter({
+				url: env.OTLP_ENDPOINT
+			})
+		});
+
+		const url = new URL(request.url);
+		const response = await sdk.fetch(`https://httpbin.org${url.pathname}`);
+		return sdk.res(response);
+	},
+};
+
+```

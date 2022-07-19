@@ -1,4 +1,4 @@
-import { TracesFetchExporter, TracesFetchExporterConfig } from './TracesFetchExporter';
+import { TracesFetchJsonExporter, TracesFetchExporterConfig } from './TracesFetchJsonExporter';
 import { Resource } from '@opentelemetry/resources';
 import { Context, DiagLogLevel, Sampler, Span, SpanKind, TextMapPropagator, trace, } from '@opentelemetry/api';
 import {
@@ -81,7 +81,7 @@ export class WorkersSDK {
         const rawHeaders = env["OTEL_EXPORTER_OTLP_TRACES_HEADERS"] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '';
         return new WorkersSDK(eventOrRequest, ctx, {
             resource,
-            exporter: new TracesFetchExporter({
+            exporter: new TracesFetchJsonExporter({
                 url: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] ?? env["OTEL_EXPORTER_OTLP_ENDPOINT"],
                 headers: baggageUtils.parseKeyPairsIntoRecord(rawHeaders)
             })
@@ -106,7 +106,7 @@ export class WorkersSDK {
         if ('exporter' in config) {
             this.traceExporter = config.exporter;
         } else {
-            this.traceExporter = new TracesFetchExporter({
+            this.traceExporter = new TracesFetchJsonExporter({
                 url: config.endpoint,
                 ...config,
             });
@@ -227,8 +227,12 @@ export class WorkersSDK {
         span.end(new Date());
     }
 
-    public end() {
-        return this.traceProvider.forceFlush();
+    public async end() {
+        try {
+            return await this.traceProvider.forceFlush();
+        } catch (error) {
+            console.error("Failed to flush spans:", error);
+        }
     }
 
     private initSpan() {
