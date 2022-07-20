@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://richicoder1.github.io/opentelemetry-sdk-workers/blog</id>
+    <title>Open Telemetry SDK for Cloudflare Workers Blog</title>
+    <updated>2022-07-19T00:00:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://richicoder1.github.io/opentelemetry-sdk-workers/blog"/>
+    <subtitle>Open Telemetry SDK for Cloudflare Workers Blog</subtitle>
+    <icon>https://richicoder1.github.io/opentelemetry-sdk-workers/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[Welcome to Otel for Workers]]></title>
+        <id>welcome-otel-first</id>
+        <link href="https://richicoder1.github.io/opentelemetry-sdk-workers/blog/welcome-otel-first"/>
+        <updated>2022-07-19T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Welcome to the Open Telemetry SDK for Cloudflare Workers]]></summary>
+        <content type="html"><![CDATA[<p>Welcome!</p>]]></content>
+        <author>
+            <name>Richard Simpson</name>
+            <uri>https://github.com/richicoder1</uri>
+        </author>
+        <category label="release" term="release"/>
+    </entry>
+</feed>

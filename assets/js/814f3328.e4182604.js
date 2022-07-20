@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[535],{5641:e=>{e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"Welcome to Otel for Workers","permalink":"/opentelemetry-sdk-workers/blog/welcome-otel-first"}]}')}}]);

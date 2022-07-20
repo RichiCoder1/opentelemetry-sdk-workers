@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[341],{9249:e=>{e.exports=JSON.parse('[{"label":"release","permalink":"/opentelemetry-sdk-workers/blog/tags/release","count":1}]')}}]);
