@@ -30,9 +30,9 @@ export default {
 	): Promise<Response> {
 		const sdk = new WorkersSDK(request, ctx, {
 			service: "worker",
-            		/* The OTLP/HTTP JSON Endpoint to send traces */
+			/* The OTLP/HTTP JSON Endpoint to send traces */
 			endpoint: env.OTLP_ENDPOINT,
-			/* headers that are getting sent to the OTLP endpoint, e.g. an api key*/
+			/* Any headers you might send; For example, authentication headers */
 			headers: { "api-key": env.OTLP_API_KEY }
 		});
 		return sdk.sendResponse(new Response("Hello World!"));
@@ -54,7 +54,7 @@ export default {
 			service: "worker",
 			/* The OTLP/HTTP JSON Endpoint to send traces */
 			endpoint: env.OTLP_ENDPOINT,
-			/* headers that are getting sent to the OTLP endpoint, e.g. an api key*/
+			/* Any headers you might send; For example, authentication headers */
 			headers: { "api-key": env.OTLP_API_KEY }
 		});
 
@@ -84,7 +84,7 @@ export default {
 			service: "worker",
 			/* The OTLP/HTTP JSON Endpoint to send traces */
 			endpoint: env.OTLP_ENDPOINT,
-			/* headers that are getting sent to the OTLP endpoint, e.g. an api key*/
+			/* Any headers you might send; For example, authentication headers */
 			headers: { "api-key": env.OTLP_API_KEY } 
 			logExporter: new OTLPJsonLogExporter({
 				url: env.OTLP_ENDPOINT,
