@@ -33,6 +33,7 @@ export abstract class OTLPCloudflareExporterBase<
 	protected _concurrencyLimit: number;
 	protected _sendingPromises: Promise<unknown>[] = [];
 	protected headers: Record<string, string>;
+	protected enableCompression: boolean;
 
 	/**
 	 * @param config
@@ -53,6 +54,8 @@ export abstract class OTLPCloudflareExporterBase<
 				: Infinity;
 
 		this.timeoutMillis = configureExporterTimeout(config.timeoutMillis);
+		
+		this.enableCompression = config.compress ?? true;
 	}
 
 	/**
@@ -85,6 +88,17 @@ export abstract class OTLPCloudflareExporterBase<
 		diag.debug("items to be sent", items);
 		return this.send(items);
 	}
+	
+	private compress(responseBuffer: Response) {
+		if (!this.enableCompression) {
+			return { buffer: responseBuffer, headers: {} };
+		}
+		
+		const compressionStream = new CompressionStream("gzip");
+		const compressedBody = responseBuffer.body.pipeThrough(compressionStream);
+		
+		return { buffer: responseBuffer, headers: {"content-encoding": "gzip"} };
+	}
 
 	send(items: ExportItem[]): Promise<void> {
 		const serviceRequest = this.convert(items);
@@ -97,17 +111,16 @@ export abstract class OTLPCloudflareExporterBase<
 			this.timeoutMillis
 		);
 		const responseBuffer = new Response(body);
-		const compressionStream = new CompressionStream("gzip");
-		const compressedBody = responseBuffer.body.pipeThrough(compressionStream);
+		const compressed = this.compress(responseBuffer);
 
 		const promise = fetch(this.url, {
 			method: "POST",
 			headers: {
 				"content-type": this.contentType,
-				"content-encoding": "gzip",
+				...compressed.headers,
 				...this.headers
 			},
-			body: compressedBody,
+			body: compressed.buffer,
 			signal
 		})
 			.then(res => {
