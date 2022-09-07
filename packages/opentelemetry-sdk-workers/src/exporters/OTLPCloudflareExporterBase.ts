@@ -89,15 +89,15 @@ export abstract class OTLPCloudflareExporterBase<
 		return this.send(items);
 	}
 	
-	private compress(responseBuffer: Response) {
+	private compress(response: Response) {
 		if (!this.enableCompression) {
-			return { buffer: responseBuffer, headers: {} };
+			return { body: response.body, headers: {} };
 		}
 		
 		const compressionStream = new CompressionStream("gzip");
-		const compressedBody = responseBuffer.body.pipeThrough(compressionStream);
+		const compressedBody = response.body.pipeThrough(compressionStream);
 		
-		return { buffer: responseBuffer, headers: {"content-encoding": "gzip"} };
+		return { body: compressedBody, headers: {"content-encoding": "gzip"} };
 	}
 
 	send(items: ExportItem[]): Promise<void> {
@@ -120,7 +120,7 @@ export abstract class OTLPCloudflareExporterBase<
 				...compressed.headers,
 				...this.headers
 			},
-			body: compressed.buffer,
+			body: compressed.body,
 			signal
 		})
 			.then(res => {
