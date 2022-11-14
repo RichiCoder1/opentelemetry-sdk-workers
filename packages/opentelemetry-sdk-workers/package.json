@@ -9,7 +9,7 @@
       "default": "./dist/index.mjs"
     },
     "./performance": {
-      "types": "./dist/preformance.d.ts",
+      "types": "./dist/performance.d.ts",
       "default": "./dist/performance.mjs"
     },
     "./exporters/OTLPProtoTraceExporter": {
