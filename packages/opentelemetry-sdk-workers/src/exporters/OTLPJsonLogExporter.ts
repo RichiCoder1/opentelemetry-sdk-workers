@@ -1,3 +1,4 @@
+import { baggageUtils } from "@opentelemetry/core";
 import { appendResourcePathToUrl } from "@opentelemetry/otlp-exporter-base";
 import { LogRecord } from "../types";
 import {
@@ -19,6 +20,9 @@ export class OTLPJsonLogExporter extends OTLPCloudflareExporterBase<
 	IExportLogsServiceRequest
 > {
 	contentType = "application/json";
+	static fromEnv(env: Record<string, string>) {
+		return new OTLPJsonLogExporter(OTLPCloudflareExporterBase.parseEnv(env, "LOGS"));
+	}
 	convert(logRecords: LogRecord[]): IExportLogsServiceRequest {
 		return createExportLogsServiceRequest(logRecords, true);
 	}

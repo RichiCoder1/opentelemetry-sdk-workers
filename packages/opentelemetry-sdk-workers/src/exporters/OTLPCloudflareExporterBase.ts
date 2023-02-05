@@ -1,5 +1,5 @@
 import { diag } from "@opentelemetry/api";
-import { ExportResult, ExportResultCode } from "@opentelemetry/core";
+import { baggageUtils, ExportResult, ExportResultCode } from "@opentelemetry/core";
 import {
 	configureExporterTimeout,
 	ExportServiceError,
@@ -35,6 +35,18 @@ export abstract class OTLPCloudflareExporterBase<
 	protected headers: Record<string, string>;
 	protected enableCompression: boolean;
 
+	public static parseEnv(env: Record<string, string>, exporterType: "LOGS" | "TRACES" | "METRICS") {
+		const url = env[`OTEL_EXPORTER_OTLP_${exporterType}_ENDPOINT`] ?? env["OTEL_EXPORTER_OTLP_ENDPOINT"];
+		const headers = baggageUtils.parseKeyPairsIntoRecord(env[`OTEL_EXPORTER_OTLP_${exporterType}_HEADERS`] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '');
+		const compressRawValue = env[`OTEL_EXPORTER_${exporterType}_COMPRESS`] ?? env["OTEL_EXPORTER_COMPRESS"];
+		const compress = compressRawValue === "1" || compressRawValue === "true";
+		return {
+			url,
+			headers,
+			compress
+		} satisfies OTLPCloudflareExporterBaseConfig;
+	}
+
 	/**
 	 * @param config
 	 */
@@ -54,7 +66,7 @@ export abstract class OTLPCloudflareExporterBase<
 				: Infinity;
 
 		this.timeoutMillis = configureExporterTimeout(config.timeoutMillis);
-		
+
 		this.enableCompression = config.compress ?? true;
 	}
 
@@ -88,15 +100,15 @@ export abstract class OTLPCloudflareExporterBase<
 		diag.debug("items to be sent", items);
 		return this.send(items);
 	}
-	
+
 	private compress(response: Response) {
 		if (!this.enableCompression) {
 			return { body: response.body, headers: {} };
 		}
-		
+
 		const compressionStream = new CompressionStream("gzip");
 		const compressedBody = response.body.pipeThrough(compressionStream);
-		
+
 		return { body: compressedBody, headers: {"content-encoding": "gzip"} };
 	}
 

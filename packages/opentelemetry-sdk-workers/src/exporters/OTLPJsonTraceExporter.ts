@@ -8,6 +8,7 @@ import {
 	OTLPCloudflareExporterBase,
 	OTLPCloudflareExporterBaseConfig
 } from "./OTLPCloudflareExporterBase";
+import { baggageUtils } from "@opentelemetry/core";
 
 const DEFAULT_COLLECTOR_RESOURCE_PATH = "v1/traces";
 
@@ -18,6 +19,9 @@ export class OTLPJsonTraceExporter extends OTLPCloudflareExporterBase<
 	ReadableSpan,
 	IExportTraceServiceRequest
 > {
+	static fromEnv(env: Record<string, string>) {
+		return new OTLPJsonTraceExporter(OTLPCloudflareExporterBase.parseEnv(env, "TRACES"));
+	}
 	getUrl(url: string): string {
 		return appendResourcePathToUrl(url, DEFAULT_COLLECTOR_RESOURCE_PATH);
 	}

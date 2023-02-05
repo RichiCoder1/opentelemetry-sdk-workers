@@ -1,9 +1,8 @@
 import { OTLPJsonTraceExporter, OTLPJsonTraceExporterConfig } from './exporters/OTLPJsonTraceExporter';
+import { OTLPJsonLogExporter } from './exporters/OTLPJsonLogExporter';
 import { Resource } from '@opentelemetry/resources';
 import { Context, DiagLogLevel, Sampler, Span, SpanKind, TextMapPropagator, trace, } from '@opentelemetry/api';
 import {
-    AlwaysOnSampler,
-    baggageUtils,
     CompositePropagator,
     ExportResultCode,
     hrTime,
@@ -11,7 +10,7 @@ import {
     W3CTraceContextPropagator,
     _globalThis,
 } from '@opentelemetry/core';
-import { BasicTracerProvider, SpanExporter, Tracer } from '@opentelemetry/sdk-trace-base';
+import { BasicTracerProvider, SpanExporter, Tracer, AlwaysOnSampler } from '@opentelemetry/sdk-trace-base';
 import { EventSpanProcessor } from './EventSpanProcessor';
 import { SimpleContext } from './SimpleContext';
 import { SemanticResourceAttributes, SemanticAttributes } from '@opentelemetry/semantic-conventions';
@@ -71,7 +70,7 @@ export class WorkersSDK {
     #flushed = false;
     #logs: LogRecord[] = [];
 
-    public static fromEnv(eventOrRequest: Request | ScheduledEvent, env: Record<string, string>, ctx: CfContext) {
+    public static fromEnv(eventOrRequest: Request | ScheduledEvent, env: Record<string, string>, ctx: CfContext, config: Partial<NodeSdkConfig> = {}) {
         const rawAttributes = env["OTEL_RESOURCE_ATTRIBUTES"];
         const attributes = this.#parseAttributes(rawAttributes);
 
@@ -88,14 +87,14 @@ export class WorkersSDK {
             [SemanticResourceAttributes.PROCESS_RUNTIME_NAME]: 'Cloudflare-Workers',
         }));
 
-        const rawHeaders = env["OTEL_EXPORTER_OTLP_TRACES_HEADERS"] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '';
+		const rawLoggingValue = env["OTEL_EXPORTER_LOGGING_ENABLED"];
+		const loggingEnabled = rawLoggingValue === "1" || rawLoggingValue === "true";
         return new WorkersSDK(eventOrRequest, ctx, {
             service: attributes[SemanticResourceAttributes.SERVICE_NAME],
             resource,
-            traceExporter: new OTLPJsonTraceExporter({
-                url: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] ?? env["OTEL_EXPORTER_OTLP_ENDPOINT"],
-                headers: baggageUtils.parseKeyPairsIntoRecord(rawHeaders)
-            })
+            traceExporter: OTLPJsonTraceExporter.fromEnv(env),
+			logExporter: loggingEnabled ? OTLPJsonLogExporter.fromEnv(env) : undefined,
+			...config
         });
     }
 

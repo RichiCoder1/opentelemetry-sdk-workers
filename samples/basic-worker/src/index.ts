@@ -1,8 +1,21 @@
 import "opentelemetry-sdk-workers/performance";
-import { OTLPJsonLogExporter, WorkersSDK } from "opentelemetry-sdk-workers";
+import { WorkersSDK } from "opentelemetry-sdk-workers";
 
-export interface Env {
-	OTLP_ENDPOINT: string;
+export interface Env extends Record<string, string> {
+	/*
+	 * Should be set to the desired OTLP endpoint.
+	 * For example: https://api.honeycomb.io
+	 */
+	OTEL_EXPORTER_OTLP_ENDPOINT: string;
+	/*
+	 * Any headers to add to the request.
+	 * See https://opentelemetry.io/docs/concepts/sdk-configuration/otlp-exporter-configuration/#otel_exporter_otlp_headers for more details.
+	 */
+	OTEL_EXPORTER_OTLP_HEADERS: string;
+	/*
+	 * Wether or not to enable logging. Defaults to false internal, set to "true" or "1" to enable.
+	 */
+	OTEL_EXPORTER_LOGGING_ENABLED: string;
 }
 
 export default {
@@ -11,13 +24,7 @@ export default {
 		env: Env,
 		ctx: ExecutionContext
 	): Promise<Response> {
-		const sdk = new WorkersSDK(request, ctx, {
-			service: "sample-worker",
-			endpoint: env.OTLP_ENDPOINT,
-			logExporter: new OTLPJsonLogExporter({
-				url: env.OTLP_ENDPOINT
-			}),
-		});
+		const sdk = WorkersSDK.fromEnv(request, env, ctx);
 
 		sdk.log.info("Test Log!");
 

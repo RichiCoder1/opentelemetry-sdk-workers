@@ -6,6 +6,7 @@ import {
 	OTLPCloudflareExporterBase,
 	OTLPCloudflareExporterBaseConfig
 } from "./OTLPCloudflareExporterBase";
+import { baggageUtils } from "@opentelemetry/core";
 
 const {
 	proto: {
@@ -27,6 +28,9 @@ export class OTLPProtoTraceExporter extends OTLPCloudflareExporterBase<
 	ReadableSpan,
 	Uint8Array
 > {
+	static fromEnv(env: Record<string, string>) {
+		return new OTLPProtoTraceExporter(OTLPCloudflareExporterBase.parseEnv(env, "TRACES"));
+	}
 	constructor(config: OTLPProtoTraceExporterConfig) {
 		super(config);
 	}
