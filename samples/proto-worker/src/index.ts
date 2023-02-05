@@ -6,6 +6,10 @@ import { OTLPProtoLogExporter } from "opentelemetry-sdk-workers/exporters/OTLPPr
 
 export interface Env extends Record<string, string> {
 	/*
+	 * The name of the worker or service it represents.
+	 */
+	OTEL_SERVICE_NAME: string;
+	/*
 	 * Should be set to the desired OTLP endpoint.
 	 * For example: https://api.honeycomb.io
 	 */

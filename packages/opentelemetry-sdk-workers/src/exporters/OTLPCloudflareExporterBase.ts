@@ -43,7 +43,7 @@ export abstract class OTLPCloudflareExporterBase<
 		const compress = !(compressRawValue === "0" || compressRawValue === "false");
 		return {
 			endpoints: {
-				default: env["OTEL_EXPORTER_OTLP_ENDPOINT"],
+				default: env["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? env["OTLP_ENDPOINT"],
 				traces: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"],
 				logs: env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"],
 			},

@@ -32,6 +32,7 @@ export default {
             /* The OTLP/HTTP JSON Endpoint to send traces */
 			endpoint: env.OTLP_ENDPOINT
 		});
+		
 		return sdk.sendResponse(new Response("Hello World!"));
 	},
 };
@@ -96,6 +97,41 @@ export default {
 };
 ```
 
+### Configuring the SDK via Environment Variables
+
+A less verbose way to automatically configure the Workers SDK is to provide all values via Environment Variables.
+For example, the logging sample above would become:
+
+```typescript
+
+/***
+ * The environment variables, for example, would be:
+ * OTEL_SERVICE_NAME: "my-service"
+ * OTEL_EXPORTER_OTLP_ENDPOINT: "https://api.otelprovider.io"
+ * OTEL_EXPORTER_OTLP_HEADERS: "x-api-key=abc123"
+ * OTEL_EXPORTER_LOGS_ENABLED: "true" 
+ */
+
+export default {
+	async fetch(
+		request: Request,
+		env: Env,
+		ctx: ExecutionContext
+	): Promise<Response> {
+		const sdk = WorkersSDK.fromEnv(request, env, ctx);
+
+		try {
+			sdk.log.info("Test Log!");
+
+			const response = await sdk.fetch("https://httpbin.org/headers/");
+			return sdk.sendResponse(response);
+		} catch (ex) {
+			sdk.captureException(ex);
+		}
+	},
+};
+```
+
 ### OTLP/HTTP Protobuf Support
 
 By default this library uses OTLP/HTTP JSON both for size and simplicity reasons. However, this may not be supported by an import or you might the encoded format. If so, you can import and use the protobuf exporter like so:
@@ -119,7 +155,9 @@ export default {
 		const sdk = new WorkersSDK(request, ctx, {
 			service: "sample-worker",
 			traceExporter: new OTLPProtoTraceExporter({
-				url: env.OTLP_ENDPOINT
+				endpoints: { default: env.OTLP_ENDPOINT },
+				// or
+				// url: "https://api.otelprovider.com/v1/traces"
 			})
 		});
 
@@ -128,5 +166,4 @@ export default {
 		return sdk.res(response);
 	},
 };
-
 ```

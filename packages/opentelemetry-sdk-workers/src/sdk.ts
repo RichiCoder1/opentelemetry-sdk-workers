@@ -75,6 +75,9 @@ export class WorkersSDK {
         const attributes = this.#parseAttributes(rawAttributes);
 
         const serviceName  = env["OTEL_SERVICE_NAME"];
+		if (serviceName === null) {
+			throw new Error("You must provide a service name via env.OTEL_SERVICE_NAME.");
+		}
         if (serviceName) {
             attributes[SemanticResourceAttributes.SERVICE_NAME] = serviceName;
         }
@@ -87,7 +90,7 @@ export class WorkersSDK {
             [SemanticResourceAttributes.PROCESS_RUNTIME_NAME]: 'Cloudflare-Workers',
         }));
 
-		const rawLoggingValue = env["OTEL_EXPORTER_LOGGING_ENABLED"];
+		const rawLoggingValue = env["OTEL_EXPORTER_LOGS_ENABLED"];
 		const loggingEnabled = rawLoggingValue === "1" || rawLoggingValue === "true";
         return new WorkersSDK(eventOrRequest, ctx, {
             service: attributes[SemanticResourceAttributes.SERVICE_NAME],
@@ -99,6 +102,10 @@ export class WorkersSDK {
     }
 
     public constructor(private eventOrRequest: Request | ScheduledEvent, private ctx: CfContext, config: NodeSdkConfig) {
+		if (config.service == null || config.service?.length == 0) {
+			throw new Error("You must provide a service name via `service`.");
+		}
+
         /**
          * Cloudflare workers provides basically no discoverable metadata to workers.
          */
@@ -112,6 +119,7 @@ export class WorkersSDK {
                 [SemanticResourceAttributes.FAAS_NAME]: config.service,
                 [SemanticResourceAttributes.PROCESS_RUNTIME_NAME]: 'Cloudflare-Workers',
             });
+
 
         if ('traceExporter' in config) {
             this.traceExporter = config.traceExporter;
