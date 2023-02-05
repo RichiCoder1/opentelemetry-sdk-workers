@@ -28,7 +28,7 @@ type NodeSdkConfigBase = {
     /**
      * The current worker's name. Corresponds to `service.name` resource attribute.
      */
-    readonly service?: string;
+    readonly service: string;
     /**
      * Provide default resource attributes.
      */
@@ -36,6 +36,11 @@ type NodeSdkConfigBase = {
     sampler?: Sampler;
     logLevel?: DiagLogLevel;
     logExporter?: LogExporter;
+	/**
+	 * Whether or note to send logger statements to the default console.
+	 * @default false
+	 */
+	consoleLogEnabled?: boolean;
 };
 
 type NodeSdkBuiltInExporter = {
@@ -53,12 +58,13 @@ type NodeSdkConfig = NodeSdkConfigBase & (NodeSdkBuiltInExporter | NodeSdkExtern
 
 export class WorkersSDK {
 
-    public readonly log: Diary;
+    public readonly logger: Diary;
     public readonly logExportEnabled: boolean;
 
     private readonly traceProvider: BasicTracerProvider;
     private readonly traceExporter: SpanExporter;
     private readonly logExporter?: LogExporter;
+	private readonly consoleLogEnabled: boolean;
     private readonly requestTracer: Tracer;
     private readonly propagator: TextMapPropagator;
     private readonly span: Span;
@@ -91,12 +97,15 @@ export class WorkersSDK {
         }));
 
 		const rawLoggingValue = env["OTEL_EXPORTER_LOGS_ENABLED"];
+		const rawConsoleLogValue = env["OTEL_EXPORTER_LOGS_CONSOLE_ENABLED"];
 		const loggingEnabled = rawLoggingValue === "1" || rawLoggingValue === "true";
+		const consoleEnabled = rawConsoleLogValue === "1" || rawConsoleLogValue === "true";
         return new WorkersSDK(eventOrRequest, ctx, {
             service: attributes[SemanticResourceAttributes.SERVICE_NAME],
             resource,
             traceExporter: OTLPJsonTraceExporter.fromEnv(env),
 			logExporter: loggingEnabled ? OTLPJsonLogExporter.fromEnv(env) : undefined,
+			consoleLogEnabled: consoleEnabled,
 			...config
         });
     }
@@ -150,13 +159,16 @@ export class WorkersSDK {
 
         this.logExporter = config.logExporter;
         this.logExportEnabled = config.logExporter != null;
+		this.consoleLogEnabled = config.consoleLogEnabled ?? false;
         enable("*");
-        this.log = diary(config.service, (event) => {
+        this.logger = diary(config.service, (event) => {
 			const { name, level, messages } = event;
             const consoleLevel = level === 'fatal' ? 'error' : level;
 
-			const [ message, extra ] = messages;
-			console[consoleLevel](message, extra);
+			if (this.consoleLogEnabled) {
+				const [ message, extra ] = messages;
+				console[consoleLevel](message, extra);
+			}
 
             if (this.logExporter) {
                 this.#ingestEvent(event);
