@@ -38,3 +38,5 @@ or
 			}),
 		});
 ```
+
+Closes [#16](https://github.com/RichiCoder1/opentelemetry-sdk-workers/issues/16)
