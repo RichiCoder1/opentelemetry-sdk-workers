@@ -1,3 +1,8 @@
 name = "basic-worker"
 main = "src/index.ts"
 compatibility_date = "2022-07-18"
+
+[vars]
+OTEL_SERVICE_NAME = "basic-worker"
+OTEL_EXPORTER_LOGGING_ENABLED = "true"
+OTEL_EXPORTER_OTLP_ENDPOINT = "https://api.honeycomb.io"
