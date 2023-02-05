@@ -19,7 +19,7 @@ export interface Env extends Record<string, string> {
 	/*
 	 * Wether or not to enable logging. Defaults to false internal, set to "true" or "1" to enable.
 	 */
-	OTEL_EXPORTER_LOGGING_ENABLED: string;
+	OTEL_EXPORTER_LOGS_ENABLED: string;
 }
 
 export default {
