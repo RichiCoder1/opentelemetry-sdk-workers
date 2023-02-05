@@ -1,0 +1,10 @@
+{
+    "name": "binding-workers-sample",
+    "private": true,
+    "devDependencies": {
+        "wrangler": "^2.9.0"
+    },
+    "dependencies": {
+        "opentelemetry-sdk-workers": "workspace:*"
+    }
+}

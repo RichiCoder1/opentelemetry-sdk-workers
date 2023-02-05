@@ -29,11 +29,7 @@ export default {
 		ctx: ExecutionContext
 	): Promise<Response> {
 		const sdk = WorkersSDK.fromEnv(request, env, ctx);
-
-		sdk.logger.info("Test Log!");
-
-		const url = new URL(request.url);
-		const response = await sdk.fetch(`https://httpbin.org${url.pathname}`);
-		return sdk.res(response);
+		sdk.logger.info("Recieved request from worker!");
+		return sdk.res(new Response("Ok!", { status: 201 }));
 	}
 };

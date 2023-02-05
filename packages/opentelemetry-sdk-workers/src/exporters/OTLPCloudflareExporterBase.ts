@@ -36,16 +36,16 @@ export abstract class OTLPCloudflareExporterBase<
 	protected headers: Record<string, string>;
 	protected enableCompression: boolean;
 
-	public static parseEnv(env: Record<string, string>, exporterType: "LOGS" | "TRACES" | "METRICS") {
-		const headers = baggageUtils.parseKeyPairsIntoRecord(env[`OTEL_EXPORTER_OTLP_${exporterType}_HEADERS`] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '');
-		const compressRawValue = env[`OTEL_EXPORTER_${exporterType}_COMPRESSION_ENABLED`] ?? env["OTEL_EXPORTER_COMPRESSION_ENABLED"] ?? 'true';
+	public static parseEnv(env: Record<string, unknown>, exporterType: "LOGS" | "TRACES" | "METRICS") {
+		const headers = baggageUtils.parseKeyPairsIntoRecord(env[`OTEL_EXPORTER_OTLP_${exporterType}_HEADERS`] as string | undefined ?? env["OTEL_EXPORTER_OTLP_HEADERS"] as string | undefined ?? '');
+		const compressRawValue = env[`OTEL_EXPORTER_${exporterType}_COMPRESSION_ENABLED`] as string | undefined ?? env["OTEL_EXPORTER_COMPRESSION_ENABLED"] as string | undefined ?? 'true';
 		// Compress defaults to true
 		const compress = !(compressRawValue === "0" || compressRawValue === "false");
 		return {
 			endpoints: {
-				default: env["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? env["OTLP_ENDPOINT"],
-				traces: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"],
-				logs: env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"],
+				default: env["OTEL_EXPORTER_OTLP_ENDPOINT"] as string | undefined ?? env["OTLP_ENDPOINT"] as string | undefined,
+				traces: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] as string | undefined,
+				logs: env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"] as string | undefined,
 			},
 			headers,
 			compress

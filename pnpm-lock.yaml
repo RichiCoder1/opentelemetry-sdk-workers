@@ -69,6 +69,24 @@ importers:
     devDependencies:
       wrangler: 2.9.0
 
+  samples/binding-consumer-worker:
+    specifiers:
+      opentelemetry-sdk-workers: workspace:*
+      wrangler: ^2.9.0
+    dependencies:
+      opentelemetry-sdk-workers: link:../../packages/opentelemetry-sdk-workers
+    devDependencies:
+      wrangler: 2.9.0
+
+  samples/binding-target-worker:
+    specifiers:
+      opentelemetry-sdk-workers: workspace:*
+      wrangler: ^2.9.0
+    dependencies:
+      opentelemetry-sdk-workers: link:../../packages/opentelemetry-sdk-workers
+    devDependencies:
+      wrangler: 2.9.0
+
   samples/proto-worker:
     specifiers:
       opentelemetry-sdk-workers: workspace:*

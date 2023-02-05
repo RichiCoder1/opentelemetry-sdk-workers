@@ -32,7 +32,7 @@ export default {
 			logExporter: OTLPProtoLogExporter.fromEnv(env),
 		});
 
-		sdk.log.info("Test Log!");
+		sdk.logger.info("Test Log!");
 
 		const url = new URL(request.url);
 		const response = await sdk.fetch(`https://httpbin.org${url.pathname}`);

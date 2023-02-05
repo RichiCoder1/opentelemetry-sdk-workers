@@ -1,0 +1,13 @@
+name = "basic-consumer-worker"
+main = "src/index.ts"
+compatibility_date = "2022-07-18"
+
+services = [
+  { binding = "example", service = "binding-target-worker" }
+]
+
+[vars]
+OTEL_SERVICE_NAME = "binding-consumer-worker"
+OTEL_EXPORTER_LOGGING_ENABLED = "true"
+OTEL_EXPORTER_OTLP_ENDPOINT = "https://api.honeycomb.io"
+

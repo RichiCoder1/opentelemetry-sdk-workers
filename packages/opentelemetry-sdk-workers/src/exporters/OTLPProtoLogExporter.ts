@@ -28,7 +28,7 @@ export class OTLPProtoLogExporter extends OTLPCloudflareExporterBase<
 	Uint8Array
 > {
 	contentType = "application/x-protobuf";
-	static fromEnv(env: Record<string, string>) {
+	static fromEnv(env: Record<string, unknown>) {
 		return new OTLPProtoLogExporter(OTLPCloudflareExporterBase.parseEnv(env, "LOGS"));
 	}
 	convert(logRecords: LogRecord[]): Uint8Array {

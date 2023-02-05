@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "types": [
+            "@cloudflare/workers-types"
+        ],
+        "preserveSymlinks": true
+    }
+}

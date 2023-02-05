@@ -19,7 +19,7 @@ export class OTLPJsonTraceExporter extends OTLPCloudflareExporterBase<
 	ReadableSpan,
 	IExportTraceServiceRequest
 > {
-	static fromEnv(env: Record<string, string>) {
+	static fromEnv(env: Record<string, unknown>) {
 		return new OTLPJsonTraceExporter(OTLPCloudflareExporterBase.parseEnv(env, "TRACES"));
 	}
 	contentType = "application/json";
