@@ -2974,6 +2974,12 @@ export const opentelemetry = $root.opentelemetry = (() => {
                         if (object.name != null)
                             message.name = String(object.name);
                         switch (object.kind) {
+                        default:
+                            if (typeof object.kind === "number") {
+                                message.kind = object.kind;
+                                break;
+                            }
+                            break;
                         case "SPAN_KIND_UNSPECIFIED":
                         case 0:
                             message.kind = 0;
@@ -3130,7 +3136,7 @@ export const opentelemetry = $root.opentelemetry = (() => {
                         if (message.name != null && message.hasOwnProperty("name"))
                             object.name = message.name;
                         if (message.kind != null && message.hasOwnProperty("kind"))
-                            object.kind = options.enums === String ? $root.opentelemetry.proto.trace.v1.Span.SpanKind[message.kind] : message.kind;
+                            object.kind = options.enums === String ? $root.opentelemetry.proto.trace.v1.Span.SpanKind[message.kind] === undefined ? message.kind : $root.opentelemetry.proto.trace.v1.Span.SpanKind[message.kind] : message.kind;
                         if (message.startTimeUnixNano != null && message.hasOwnProperty("startTimeUnixNano"))
                             if (typeof message.startTimeUnixNano === "number")
                                 object.startTimeUnixNano = options.longs === String ? String(message.startTimeUnixNano) : message.startTimeUnixNano;
@@ -4039,6 +4045,12 @@ export const opentelemetry = $root.opentelemetry = (() => {
                         if (object.message != null)
                             message.message = String(object.message);
                         switch (object.code) {
+                        default:
+                            if (typeof object.code === "number") {
+                                message.code = object.code;
+                                break;
+                            }
+                            break;
                         case "STATUS_CODE_UNSET":
                         case 0:
                             message.code = 0;
@@ -4075,7 +4087,7 @@ export const opentelemetry = $root.opentelemetry = (() => {
                         if (message.message != null && message.hasOwnProperty("message"))
                             object.message = message.message;
                         if (message.code != null && message.hasOwnProperty("code"))
-                            object.code = options.enums === String ? $root.opentelemetry.proto.trace.v1.Status.StatusCode[message.code] : message.code;
+                            object.code = options.enums === String ? $root.opentelemetry.proto.trace.v1.Status.StatusCode[message.code] === undefined ? message.code : $root.opentelemetry.proto.trace.v1.Status.StatusCode[message.code] : message.code;
                         return object;
                     };
 
@@ -5370,6 +5382,12 @@ export const opentelemetry = $root.opentelemetry = (() => {
                             else if (typeof object.observedTimeUnixNano === "object")
                                 message.observedTimeUnixNano = new $util.LongBits(object.observedTimeUnixNano.low >>> 0, object.observedTimeUnixNano.high >>> 0).toNumber();
                         switch (object.severityNumber) {
+                        default:
+                            if (typeof object.severityNumber === "number") {
+                                message.severityNumber = object.severityNumber;
+                                break;
+                            }
+                            break;
                         case "SEVERITY_NUMBER_UNSPECIFIED":
                         case 0:
                             message.severityNumber = 0;
@@ -5557,7 +5575,7 @@ export const opentelemetry = $root.opentelemetry = (() => {
                             else
                                 object.timeUnixNano = options.longs === String ? $util.Long.prototype.toString.call(message.timeUnixNano) : options.longs === Number ? new $util.LongBits(message.timeUnixNano.low >>> 0, message.timeUnixNano.high >>> 0).toNumber() : message.timeUnixNano;
                         if (message.severityNumber != null && message.hasOwnProperty("severityNumber"))
-                            object.severityNumber = options.enums === String ? $root.opentelemetry.proto.logs.v1.SeverityNumber[message.severityNumber] : message.severityNumber;
+                            object.severityNumber = options.enums === String ? $root.opentelemetry.proto.logs.v1.SeverityNumber[message.severityNumber] === undefined ? message.severityNumber : $root.opentelemetry.proto.logs.v1.SeverityNumber[message.severityNumber] : message.severityNumber;
                         if (message.severityText != null && message.hasOwnProperty("severityText"))
                             object.severityText = message.severityText;
                         if (message.body != null && message.hasOwnProperty("body"))
