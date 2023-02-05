@@ -27,7 +27,7 @@
   "typesVersions": {
     "*": {
       "*": [
-        "dist/types/index.d.ts"
+        "dist/index.d.ts"
       ],
       "exporters/OTLPProtoTraceExporter": [
         "dist/exporters/OTLPProtoTraceExporter.d.ts"

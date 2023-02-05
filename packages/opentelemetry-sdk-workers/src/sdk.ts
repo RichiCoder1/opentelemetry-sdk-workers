@@ -144,8 +144,11 @@ export class WorkersSDK {
         this.logExportEnabled = config.logExporter != null;
         enable("*");
         this.log = diary(config.service, (event) => {
-            const consoleLevel = event.level === 'fatal' ? 'error' : event.level;
-            console[consoleLevel](event.message, ...event.extra);
+			const { name, level, messages } = event;
+            const consoleLevel = level === 'fatal' ? 'error' : level;
+
+			const [ message, extra ] = messages;
+			console[consoleLevel](message, extra);
 
             if (this.logExporter) {
                 this.#ingestEvent(event);
@@ -208,7 +211,7 @@ export class WorkersSDK {
         this.ctx.waitUntil(this.end());
         return response;
     }
-    public res = this.sendResponse.bind(this);
+    public res: (response: Response) => Response = this.sendResponse.bind(this);
 
     public captureException(ex: Error): void {
         this.span.recordException(ex);
@@ -361,7 +364,8 @@ export class WorkersSDK {
 
     #ingestEvent(event: LogEvent) {
         const { spanId, traceId, traceFlags } = this.span.spanContext();
-        const level = event.level === "log" ? "info" : event.level;
+		const { level: defaultLevel, name, messages } = event;
+        const level = defaultLevel === "log" ? "info" : defaultLevel;
         let severityNumber: number;
         switch (level) {
             case "debug": severityNumber = 5; break;
@@ -371,6 +375,8 @@ export class WorkersSDK {
             case "fatal": severityNumber = 21; break;
         }
 
+		const [ message, extra ] = messages;
+
         this.#logs.push({
             timestamp: hrTime(Date.now()),
             observedTimestamp: hrTime(Date.now()),
@@ -379,13 +385,13 @@ export class WorkersSDK {
             traceFlags,
             severityText: level.toUpperCase(),
             severityNumber: severityNumber,
-            body: event.message,
+            body: `${message}`,
             instrumentationLibrary: {
                 name: "opentelemetry-sdk-workers",
             },
             resource: this.traceProvider.resource,
             attributes: {
-                "log.extra": event.extra
+                "log.extra": extra
             }
         });
     }
