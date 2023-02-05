@@ -1,4 +1,4 @@
-import { appendResourcePathToUrl } from "@opentelemetry/otlp-exporter-base";
+import { appendResourcePathToUrl, appendRootPathToUrlIfNeeded } from "@opentelemetry/otlp-exporter-base";
 import { ReadableSpan } from "@opentelemetry/sdk-trace-base";
 import {
 	createExportTraceServiceRequest,
@@ -22,11 +22,23 @@ export class OTLPJsonTraceExporter extends OTLPCloudflareExporterBase<
 	static fromEnv(env: Record<string, string>) {
 		return new OTLPJsonTraceExporter(OTLPCloudflareExporterBase.parseEnv(env, "TRACES"));
 	}
-	getUrl(url: string): string {
-		return appendResourcePathToUrl(url, DEFAULT_COLLECTOR_RESOURCE_PATH);
-	}
 	contentType = "application/json";
 	convert(spans: ReadableSpan[]): IExportTraceServiceRequest {
 		return createExportTraceServiceRequest(spans, true);
+	}
+	getUrl(config: OTLPCloudflareExporterBaseConfig): string {
+		if (typeof config.url === 'string') {
+			return config.url;
+		}
+
+		if (config.endpoints?.traces?.length > 0) {
+			return appendRootPathToUrlIfNeeded(config.endpoints.traces);
+		}
+
+		if (config.endpoints?.default?.length > 0) {
+			return appendResourcePathToUrl(config.endpoints.default, DEFAULT_COLLECTOR_RESOURCE_PATH);
+		}
+
+		throw new Error("You must provide a valid URL for this exporter. Make sure either config.url or env.OTEL_EXPORTER_OTLP_ENDPOINT are specified.");
 	}
 }

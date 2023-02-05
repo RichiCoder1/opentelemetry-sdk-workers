@@ -13,7 +13,8 @@ export type OTLPCloudflareExporterBaseConfig = Omit<
 	OTLPExporterConfigBase,
 	"hostname"
 > & {
-	url: string;
+	url?: string;
+	endpoints?: { default?: string, traces?: string; logs?: string; },
 	compress?: boolean;
 };
 
@@ -36,13 +37,16 @@ export abstract class OTLPCloudflareExporterBase<
 	protected enableCompression: boolean;
 
 	public static parseEnv(env: Record<string, string>, exporterType: "LOGS" | "TRACES" | "METRICS") {
-		const url = env[`OTEL_EXPORTER_OTLP_${exporterType}_ENDPOINT`] ?? env["OTEL_EXPORTER_OTLP_ENDPOINT"];
 		const headers = baggageUtils.parseKeyPairsIntoRecord(env[`OTEL_EXPORTER_OTLP_${exporterType}_HEADERS`] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '');
 		const compressRawValue = env[`OTEL_EXPORTER_${exporterType}_COMPRESS`] ?? env["OTEL_EXPORTER_COMPRESS"] ?? 'true';
 		// Compress defaults to true
 		const compress = !(compressRawValue === "0" || compressRawValue === "false");
 		return {
-			url,
+			endpoints: {
+				default: env["OTEL_EXPORTER_OTLP_ENDPOINT"],
+				traces: env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"],
+				logs: env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"],
+			},
 			headers,
 			compress
 		} satisfies OTLPCloudflareExporterBaseConfig;
@@ -52,7 +56,7 @@ export abstract class OTLPCloudflareExporterBase<
 	 * @param config
 	 */
 	constructor(config: T = {} as T) {
-		this.url = this.getUrl(config.url);
+		this.url = this.getUrl(config);
 		if ((config as any).metadata) {
 			diag.warn("Metadata cannot be set when using http");
 		}
@@ -163,5 +167,5 @@ export abstract class OTLPCloudflareExporterBase<
 
 	abstract contentType: string;
 	abstract convert(objects: ExportItem[]): ServiceRequest;
-	abstract getUrl(urlBase: string): string;
+	abstract getUrl(config: OTLPCloudflareExporterBaseConfig): string;
 }

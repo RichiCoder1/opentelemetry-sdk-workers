@@ -116,9 +116,10 @@ export class WorkersSDK {
         if ('traceExporter' in config) {
             this.traceExporter = config.traceExporter;
         } else {
+			const { endpoint, ...exporterConfig } = config;
             this.traceExporter = new OTLPJsonTraceExporter({
-                url: config.endpoint,
-                ...config,
+                endpoints: { default: endpoint },
+                ...exporterConfig,
             });
         }
 
