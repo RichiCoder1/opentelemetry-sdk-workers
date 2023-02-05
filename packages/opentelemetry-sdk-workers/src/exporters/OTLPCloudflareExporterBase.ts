@@ -38,7 +38,7 @@ export abstract class OTLPCloudflareExporterBase<
 
 	public static parseEnv(env: Record<string, string>, exporterType: "LOGS" | "TRACES" | "METRICS") {
 		const headers = baggageUtils.parseKeyPairsIntoRecord(env[`OTEL_EXPORTER_OTLP_${exporterType}_HEADERS`] ?? env["OTEL_EXPORTER_OTLP_HEADERS"] ?? '');
-		const compressRawValue = env[`OTEL_EXPORTER_${exporterType}_COMPRESS`] ?? env["OTEL_EXPORTER_COMPRESS"] ?? 'true';
+		const compressRawValue = env[`OTEL_EXPORTER_${exporterType}_COMPRESSION_ENABLED`] ?? env["OTEL_EXPORTER_COMPRESSION_ENABLED"] ?? 'true';
 		// Compress defaults to true
 		const compress = !(compressRawValue === "0" || compressRawValue === "false");
 		return {
