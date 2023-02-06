@@ -1,5 +1,11 @@
 # opentelemetry-sdk-workers
 
+## 0.6.1
+
+### Patch Changes
+
+- [`b0b9be6`](https://github.com/RichiCoder1/opentelemetry-sdk-workers/commit/b0b9be6d7105e03f4a3fd73588829524e0e29502) Thanks [@RichiCoder1](https://github.com/RichiCoder1)! - Clarify exporter fetch error
+
 ## 0.6.0
 
 ### Minor Changes
