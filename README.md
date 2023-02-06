@@ -65,8 +65,10 @@ export default {
 };
 ```
 
+### Service Bindings and Durable Objects
+
 This also works with any `fetch`-based bindings like Service Bindings or Durable Objects.
-To use this support, you can pass in the Env to
+To use this support, you can pass in the Env to the third argument when creating the Workers SDK and access bindings via `sdk.env.<BINDING>`.
 
 For example, say you have an authentication service bound as `auth`:
 
@@ -113,6 +115,9 @@ export default {
 	},
 };
 ```
+
+> **Note**
+> When using TypeScript, you must provide the Environment type with bindings inheriting from the `Fetcher` type in the `@cloudflare/worker-types` in order for them to be available on `sdk.env`.
 
 ## Logging
 
