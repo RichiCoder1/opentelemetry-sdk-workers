@@ -1,7 +1,7 @@
 import { OTLPJsonTraceExporter, OTLPJsonTraceExporterConfig } from './exporters/OTLPJsonTraceExporter';
 import { OTLPJsonLogExporter } from './exporters/OTLPJsonLogExporter';
 import { Resource } from '@opentelemetry/resources';
-import { Context, DiagLogLevel, Sampler, Span, SpanKind, TextMapPropagator, trace, } from '@opentelemetry/api';
+import { Context, DiagLogLevel, Span, SpanKind, TextMapPropagator, trace, } from '@opentelemetry/api';
 import {
     CompositePropagator,
     ExportResultCode,
@@ -10,7 +10,7 @@ import {
     W3CTraceContextPropagator,
     _globalThis,
 } from '@opentelemetry/core';
-import { BasicTracerProvider, SpanExporter, Tracer, AlwaysOnSampler } from '@opentelemetry/sdk-trace-base';
+import { BasicTracerProvider, SpanExporter, Tracer, AlwaysOnSampler, Sampler } from '@opentelemetry/sdk-trace-base';
 import { EventSpanProcessor } from './EventSpanProcessor';
 import { SimpleContext } from './SimpleContext';
 import { SemanticResourceAttributes, SemanticAttributes } from '@opentelemetry/semantic-conventions';
@@ -33,8 +33,25 @@ type NodeSdkConfigBase = {
      * Provide default resource attributes.
      */
     resource?: Resource;
+	/**
+	 * Provide sampler for otel data. Defaults to Always On.
+	 * @default AlwaysOnSampler
+	 */
     sampler?: Sampler;
+	/**
+	 * Provide propagator for otel. Defaults to WC3 Header and Baggage Propagators.
+	 * @default - W3CTraceContextPropagator & W3CBaggagePropagator
+	 */
+	propagator?: TextMapPropagator;
+	/**
+	 * Log Level for sdk logger implementation.
+	 * @default DiagLogLevel.ALL
+	 */
     logLevel?: DiagLogLevel;
+	/**
+	 * Log Exporter for sdk logger implementation.
+	 * @default -
+	 */
     logExporter?: LogExporter;
 	/**
 	 * Whether or note to send logger statements to the default console.
@@ -176,7 +193,7 @@ export class WorkersSDK<TEnv extends Record<string, unknown> = {}> {
 
         const spanProcessor = new EventSpanProcessor(this.traceExporter);
         this.traceProvider.addSpanProcessor(spanProcessor);
-        this.propagator = new CompositePropagator({
+        this.propagator = config.propagator ?? new CompositePropagator({
             propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()],
         });
         this.requestTracer = this.traceProvider.getTracer('opentelemetry-sdk-workers', '0.1.0');
