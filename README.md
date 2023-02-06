@@ -1,3 +1,4 @@
+<!-- markdownlint-configure-file { "hard_tab": { "code_blocks": false } } -->
 # Open Telemetry SDK for Cloudflare Workers
 
 A WIP library for adding tracing (and soon, logging) to Cloudflare Workers.
@@ -32,7 +33,7 @@ export default {
             /* The OTLP/HTTP JSON Endpoint to send traces */
 			endpoint: env.OTLP_ENDPOINT
 		});
-		
+
 		return sdk.sendResponse(new Response("Hello World!"));
 	},
 };
@@ -55,6 +56,55 @@ export default {
 		});
 
 		try {
+			const response = await sdk.fetch("https://httpbin.org/headers/");
+			return sdk.sendResponse(response);
+		} catch (ex) {
+			sdk.captureException(ex);
+		}
+	},
+};
+```
+
+This also works with any `fetch`-based bindings like Service Bindings or Durable Objects.
+To use this support, you can pass in the Env to
+
+For example, say you have an authentication service bound as `auth`:
+
+```typescript
+/* Required to patch missing performance API in Cloudflare Workers. */
+import "opentelemetry-sdk-workers/performance";
+import { WorkersSDK } from "opentelemetry-sdk-workers";
+
+export interface Env {
+	OTLP_ENDPOINT: string;
+
+	/***
+	 * Authentication Service
+	 */
+	AUTH: Fetcher /* Type available from @cloudflare/workers-types */;
+}
+
+
+export default {
+	async fetch(
+		request: Request,
+		env: Env,
+		ctx: ExecutionContext
+	): Promise<Response> {
+		const sdk = new WorkersSDK(request, ctx, env, {
+			/* This is the service.name */
+			service: "worker",
+			/* The OTLP/HTTP JSON Endpoint to send traces */
+			endpoint: env.OTLP_ENDPOINT
+		});
+
+		try {
+
+			const authResponse = await sdk.env.AUTH.fetch(request);
+			if (!authResponse.ok) {
+				return sdk.sendResponse(authResponse);
+			}
+
 			const response = await sdk.fetch("https://httpbin.org/headers/");
 			return sdk.sendResponse(response);
 		} catch (ex) {
@@ -109,7 +159,7 @@ For example, the logging sample above would become:
  * OTEL_SERVICE_NAME: "my-service"
  * OTEL_EXPORTER_OTLP_ENDPOINT: "https://api.otelprovider.io"
  * OTEL_EXPORTER_OTLP_HEADERS: "x-api-key=abc123"
- * OTEL_EXPORTER_LOGS_ENABLED: "true" 
+ * OTEL_EXPORTER_LOGS_ENABLED: "true"
  */
 
 export default {
