@@ -323,7 +323,8 @@ export class WorkersSDK<TEnv extends Record<string, unknown> = {}> {
             }
             await Promise.all(exportPromises);
         } catch (error) {
-            console.error("Failed to flush spans:", error);
+            console.error("Failed to exporter open telemetry data:", error);
+			console.error("Make sure that your endpoint and/or exporters are correctly configured.");
         }
     }
 
