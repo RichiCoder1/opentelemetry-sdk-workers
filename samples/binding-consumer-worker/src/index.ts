@@ -1,7 +1,7 @@
 import "opentelemetry-sdk-workers/performance";
 import { WorkersSDK } from "opentelemetry-sdk-workers";
 
-export interface Env extends Record<string, string> {
+export interface Env extends Record<string, unknown> {
 	/*
 	 * The name of the worker or service it represents.
 	 */
@@ -20,6 +20,11 @@ export interface Env extends Record<string, string> {
 	 * Wether or not to enable logging. Defaults to false internal, set to "true" or "1" to enable.
 	 */
 	OTEL_EXPORTER_LOGS_ENABLED: string;
+
+	/**
+	 * The example worker from `binding-target-worker`
+	 */
+	example: Fetcher;
 }
 
 export default {
@@ -28,12 +33,12 @@ export default {
 		env: Env,
 		ctx: ExecutionContext
 	): Promise<Response> {
-		const sdk = WorkersSDK.fromEnv(request, env, ctx);
+		const sdk = WorkersSDK.fromEnv<Env>(request, env, ctx);
 
-		sdk.logger.info("Test Log!");
+		sdk.logger.info("Got request!");
+		const response = await sdk.env.example.fetch(request.clone());
+		sdk.logger.info(`Got Response: ${response.status}`);
 
-		const url = new URL(request.url);
-		const response = await sdk.fetch(`https://httpbin.org${url.pathname}`);
 		return sdk.res(response);
-	}
+	},
 };

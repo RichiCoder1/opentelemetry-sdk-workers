@@ -28,7 +28,7 @@ export class OTLPProtoTraceExporter extends OTLPCloudflareExporterBase<
 	ReadableSpan,
 	Uint8Array
 > {
-	static fromEnv(env: Record<string, string>) {
+	static fromEnv(env: Record<string, unknown>) {
 		return new OTLPProtoTraceExporter(OTLPCloudflareExporterBase.parseEnv(env, "TRACES"));
 	}
 	constructor(config: OTLPProtoTraceExporterConfig) {

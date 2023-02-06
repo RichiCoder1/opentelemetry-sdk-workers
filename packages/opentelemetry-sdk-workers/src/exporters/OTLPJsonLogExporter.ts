@@ -20,7 +20,7 @@ export class OTLPJsonLogExporter extends OTLPCloudflareExporterBase<
 	IExportLogsServiceRequest
 > {
 	contentType = "application/json";
-	static fromEnv(env: Record<string, string>) {
+	static fromEnv(env: Record<string, unknown>) {
 		return new OTLPJsonLogExporter(OTLPCloudflareExporterBase.parseEnv(env, "LOGS"));
 	}
 	convert(logRecords: LogRecord[]): IExportLogsServiceRequest {

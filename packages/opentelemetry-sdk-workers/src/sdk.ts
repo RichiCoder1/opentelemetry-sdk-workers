@@ -56,10 +56,25 @@ type NodeSdkExternalExporter = {
 
 type NodeSdkConfig = NodeSdkConfigBase & (NodeSdkBuiltInExporter | NodeSdkExternalExporter);
 
-export class WorkersSDK {
+type Bindings<TEnv extends Record<string, unknown>> = {
+	[TKey in keyof TEnv as TEnv[TKey] extends Fetcher ? TKey : never]: TEnv[TKey];
+}
 
+export class WorkersSDK<TEnv extends Record<string, unknown> = {}> {
     public readonly logger: Diary;
     public readonly logExportEnabled: boolean;
+	public get env(): Bindings<TEnv> {
+		return new Proxy(this.#env, {
+			get: (target, prop, reciever) => {
+				const binding = Reflect.get(target, prop, reciever);
+				return {
+					fetch: (request: RequestInfo, init?: RequestInit) => {
+						return this._fetch(binding, request as any, init);
+					}
+				}
+			}
+		}) as Bindings<TEnv>;
+	}
 
     private readonly traceProvider: BasicTracerProvider;
     private readonly traceExporter: SpanExporter;
@@ -75,12 +90,13 @@ export class WorkersSDK {
 
     #flushed = false;
     #logs: LogRecord[] = [];
+	#env: Record<string, unknown>;
 
-    public static fromEnv(eventOrRequest: Request | ScheduledEvent, env: Record<string, string>, ctx: CfContext, config: Partial<NodeSdkConfig> = {}) {
-        const rawAttributes = env["OTEL_RESOURCE_ATTRIBUTES"];
+    public static fromEnv<TEnv extends Record<string, unknown> = {}>(eventOrRequest: Request | ScheduledEvent, env: TEnv, ctx: CfContext, config: Partial<NodeSdkConfig> = {}) {
+        const rawAttributes = env["OTEL_RESOURCE_ATTRIBUTES"] as string;
         const attributes = this.#parseAttributes(rawAttributes);
 
-        const serviceName  = env["OTEL_SERVICE_NAME"];
+        const serviceName  = env["OTEL_SERVICE_NAME"] as string | undefined;
 		if (serviceName === null) {
 			throw new Error("You must provide a service name via env.OTEL_SERVICE_NAME.");
 		}
@@ -100,17 +116,29 @@ export class WorkersSDK {
 		const rawConsoleLogValue = env["OTEL_EXPORTER_LOGS_CONSOLE_ENABLED"];
 		const loggingEnabled = rawLoggingValue === "1" || rawLoggingValue === "true";
 		const consoleEnabled = rawConsoleLogValue === "1" || rawConsoleLogValue === "true";
-        return new WorkersSDK(eventOrRequest, ctx, {
+        return new WorkersSDK<TEnv>(eventOrRequest, ctx, env, {
             service: attributes[SemanticResourceAttributes.SERVICE_NAME],
             resource,
             traceExporter: OTLPJsonTraceExporter.fromEnv(env),
 			logExporter: loggingEnabled ? OTLPJsonLogExporter.fromEnv(env) : undefined,
 			consoleLogEnabled: consoleEnabled,
-			...config
+			...config,
         });
     }
 
-    public constructor(private eventOrRequest: Request | ScheduledEvent, private ctx: CfContext, config: NodeSdkConfig) {
+	public constructor(eventOrRequest: Request | ScheduledEvent, ctx: CfContext, config: NodeSdkConfig);
+	public constructor(eventOrRequest: Request | ScheduledEvent, ctx: CfContext, environment: Record<string, unknown>, config: NodeSdkConfig);
+    public constructor(private eventOrRequest: Request | ScheduledEvent, private ctx: CfContext, envOrConfig: Record<string, unknown> | NodeSdkConfig, configOrUnk?: NodeSdkConfig) {
+		let config: NodeSdkConfig;
+		let env: Record<string, unknown> = {};
+		if (configOrUnk == null) {
+			config = envOrConfig as NodeSdkConfig;
+		} else {
+			config = configOrUnk!;
+			env = envOrConfig as Record<string, unknown>;
+		}
+		this.#env = env;
+
 		if (config.service == null || config.service?.length == 0) {
 			throw new Error("You must provide a service name via `service`.");
 		}
@@ -177,29 +205,7 @@ export class WorkersSDK {
     }
 
     public async fetch(request: Request | string, requestInitr?: RequestInit | Request): Promise<Response> {
-        let downstreamRequest: Request;
-        if (request instanceof Request) {
-            downstreamRequest = cloneRequest(request);
-        } else {
-            downstreamRequest = new Request(request, requestInitr);
-        }
-
-        const childSpan = this.createSpan(downstreamRequest);
-        this.propagator.inject(this.spanContext, downstreamRequest.headers, headersTextMapper);
-
-        if (this.#flushed) {
-            console.warn(
-                'Fetch request sent after worker spans were flushed. Avoid using instance.fetch after calling sendResponse or captureException.'
-            );
-        }
-        try {
-            const response = await _globalThis.fetch(downstreamRequest);
-            this.endSpan(downstreamRequest, childSpan, response);
-            return response;
-        } catch (reason) {
-            this.endSpan(downstreamRequest, childSpan, reason);
-            return reason;
-        }
+		return this._fetch(_globalThis, request, requestInitr);
     }
 
     public sendResponse(response: Response): Response {
@@ -242,6 +248,32 @@ export class WorkersSDK {
         }
         this.span.end(endTime);
         this.ctx.waitUntil(this.end());
+    }
+
+    private async _fetch(fetchTarget: Fetcher, request: Request | string, requestInitr?: RequestInit | Request): Promise<Response> {
+        let downstreamRequest: Request;
+        if (request instanceof Request) {
+            downstreamRequest = cloneRequest(request);
+        } else {
+            downstreamRequest = new Request(request, requestInitr);
+        }
+
+        const childSpan = this.createSpan(downstreamRequest);
+        this.propagator.inject(this.spanContext, downstreamRequest.headers, headersTextMapper);
+
+        if (this.#flushed) {
+            console.warn(
+                'Fetch request sent after worker spans were flushed. Avoid using instance.fetch after calling sendResponse or captureException.'
+            );
+        }
+        try {
+            const response = await fetchTarget.fetch(downstreamRequest);
+            this.endSpan(downstreamRequest, childSpan, response);
+            return response;
+        } catch (reason) {
+            this.endSpan(downstreamRequest, childSpan, reason);
+            return reason;
+        }
     }
 
     private createSpan(request: Request): Span {
