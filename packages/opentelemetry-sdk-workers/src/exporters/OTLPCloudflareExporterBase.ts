@@ -151,7 +151,7 @@ export abstract class OTLPCloudflareExporterBase<
 						throw new OTLPExporterError("Request Timeout");
 					}
 				}
-				throw new OTLPExporterError(`Unknown error ${error}`);
+				throw new OTLPExporterError(`There was an error sending spans:\n\t${error}\nDouble check that your exporter URL is correct and the endpoint is valid.`);
 			});
 
 		this._sendingPromises.push(promise);
