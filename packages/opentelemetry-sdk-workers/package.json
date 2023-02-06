@@ -1,6 +1,6 @@
 {
   "name": "opentelemetry-sdk-workers",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Open Telemetry Cloudflare Workers Library. Provides a basic sdk for instrumenting workers.",
   "module": "dist/index.mjs",
   "exports": {
