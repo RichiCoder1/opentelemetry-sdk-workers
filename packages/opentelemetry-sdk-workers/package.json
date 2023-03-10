@@ -81,6 +81,8 @@
   "dependencies": {
     "@opentelemetry/api": "^1.4.0",
     "@opentelemetry/core": "^1.9.1",
+    "@opentelemetry/context-async-hooks": "^1.9.1",
+    "@opentelemetry/instrumentation": "^0.35.1",
     "@opentelemetry/otlp-exporter-base": "^0.35.1",
     "@opentelemetry/otlp-transformer": "^0.35.1",
     "@opentelemetry/resources": "^1.9.1",
@@ -90,7 +92,6 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230115.0",
-    "@opentelemetry/instrumentation": "^0.35.1",
     "@types/lodash-es": "^4.17.6",
     "diary": "^0.4.3",
     "lodash-es": "^4.17.21",

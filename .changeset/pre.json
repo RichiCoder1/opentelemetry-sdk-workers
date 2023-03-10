@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "opentelemetry-sdk-workers": "0.6.2"
+  },
+  "changesets": []
+}
