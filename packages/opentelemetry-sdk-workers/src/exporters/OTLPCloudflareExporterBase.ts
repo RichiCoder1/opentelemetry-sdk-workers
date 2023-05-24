@@ -138,6 +138,7 @@ export abstract class OTLPCloudflareExporterBase<
 				...this.headers
 			},
 			body: compressed.body,
+			duplex: "half",
 			signal
 		})
 			.then(res => {
