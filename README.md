@@ -1,5 +1,14 @@
 <!-- markdownlint-configure-file { "hard_tab": { "code_blocks": false } } -->
-# Open Telemetry SDK for Cloudflare Workers
+# Deprecated
+
+I haven't been able to dedicate time to this project and an excellent successor that uses `node_compat` has been created:
+
+https://github.com/evanderkoogh/otel-cf-workers
+
+Unless you have a very good reason not to be using `node_compat`, I recommend switching over to using that library instead.
+
+
+## Open Telemetry SDK for Cloudflare Workers
 
 A WIP library for adding tracing (and soon, logging) to Cloudflare Workers.
 
