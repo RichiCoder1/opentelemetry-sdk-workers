@@ -29,6 +29,7 @@ import { WorkersSDK } from "opentelemetry-sdk-workers";
 
 export interface Env {
 	OTLP_ENDPOINT: string;
+	OTLP_API_KEY: string;
 }
 
 export default {
@@ -39,8 +40,10 @@ export default {
 	): Promise<Response> {
 		const sdk = new WorkersSDK(request, ctx, {
 			service: "worker",
-            /* The OTLP/HTTP JSON Endpoint to send traces */
-			endpoint: env.OTLP_ENDPOINT
+			/* The OTLP/HTTP JSON Endpoint to send traces */
+			endpoint: env.OTLP_ENDPOINT,
+			/* Any headers you might send; For example, authentication headers */
+			headers: { "api-key": env.OTLP_API_KEY }
 		});
 
 		return sdk.sendResponse(new Response("Hello World!"));
@@ -61,7 +64,9 @@ export default {
 			/* This is the service.name */
 			service: "worker",
 			/* The OTLP/HTTP JSON Endpoint to send traces */
-			endpoint: env.OTLP_ENDPOINT
+			endpoint: env.OTLP_ENDPOINT,
+			/* Any headers you might send; For example, authentication headers */
+			headers: { "api-key": env.OTLP_API_KEY }
 		});
 
 		try {
@@ -144,8 +149,11 @@ export default {
 			service: "worker",
 			/* The OTLP/HTTP JSON Endpoint to send traces */
 			endpoint: env.OTLP_ENDPOINT,
+			/* Any headers you might send; For example, authentication headers */
+			headers: { "api-key": env.OTLP_API_KEY } 
 			logExporter: new OTLPJsonLogExporter({
-				url: env.OTLP_ENDPOINT
+				url: env.OTLP_ENDPOINT,
+				headers: { "api-key": env.OTLP_API_KEY } 
 			}),
 		});
 
