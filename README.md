@@ -185,7 +185,7 @@ export default {
 		const sdk = WorkersSDK.fromEnv(request, env, ctx);
 
 		try {
-			sdk.log.info("Test Log!");
+			sdk.logger.info("Test Log!");
 
 			const response = await sdk.fetch("https://httpbin.org/headers/");
 			return sdk.sendResponse(response);
