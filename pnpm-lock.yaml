@@ -40,7 +40,7 @@ importers:
       diary: ^0.4.3
       lodash-es: ^4.17.21
       long: ^5.2.1
-      protobufjs: ^7.2.1
+      protobufjs: ^7.2.4
       protobufjs-cli: ^1.1.1
     dependencies:
       '@opentelemetry/api': 1.4.0
@@ -50,7 +50,7 @@ importers:
       '@opentelemetry/resources': 1.9.1_@opentelemetry+api@1.4.0
       '@opentelemetry/sdk-trace-base': 1.9.1_@opentelemetry+api@1.4.0
       '@opentelemetry/semantic-conventions': 1.9.1
-      protobufjs: 7.2.1
+      protobufjs: 7.2.4
     devDependencies:
       '@cloudflare/workers-types': 4.20230115.0
       '@opentelemetry/instrumentation': 0.35.1_@opentelemetry+api@1.4.0
@@ -58,7 +58,7 @@ importers:
       diary: 0.4.3
       lodash-es: 4.17.21
       long: 5.2.1
-      protobufjs-cli: 1.1.1_protobufjs@7.2.1
+      protobufjs-cli: 1.1.1_protobufjs@7.2.4
 
   samples/basic-worker:
     specifiers:
@@ -5147,7 +5147,7 @@ packages:
     resolution: {integrity: sha512-vtK/94akxsTMhe0/cbfpR+syPuszcuwhqVjJq26CuNDgFGj682oRBXOP5MJpv2r7JtE8MsiepGIqvvOTBwn2vA==}
     dev: true
 
-  /protobufjs-cli/1.1.1_protobufjs@7.2.1:
+  /protobufjs-cli/1.1.1_protobufjs@7.2.4:
     resolution: {integrity: sha512-VPWMgIcRNyQwWUv8OLPyGQ/0lQY/QTQAVN5fh+XzfDwsVw1FZ2L3DM/bcBf8WPiRz2tNpaov9lPZfNcmNo6LXA==}
     engines: {node: '>=12.0.0'}
     hasBin: true
@@ -5161,14 +5161,14 @@ packages:
       glob: 8.1.0
       jsdoc: 4.0.0
       minimist: 1.2.7
-      protobufjs: 7.2.1
+      protobufjs: 7.2.4
       semver: 7.3.8
       tmp: 0.2.1
       uglify-js: 3.17.4
     dev: true
 
-  /protobufjs/7.2.1:
-    resolution: {integrity: sha512-L3pCItypTnPK27+CS8nuhZMYtsY+i8dqdq2vZsYHlG17CnWp1DWPQ/sos0vOKrj1fHEAzo3GBqSHLaeZyKUCDA==}
+  /protobufjs/7.2.4:
+    resolution: {integrity: sha512-AT+RJgD2sH8phPmCf7OUZR8xGdcJRga4+1cOaXJ64hvcSkVhNcRHOwIxUatPH15+nj59WAGTDv3LSGZPEQbJaQ==}
     engines: {node: '>=12.0.0'}
     requiresBuild: true
     dependencies:
@@ -6118,6 +6118,7 @@ packages:
     resolution: {integrity: sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==}
     engines: {node: '>=0.8.0'}
     hasBin: true
+    requiresBuild: true
     dev: true
 
   /unbox-primitive/1.0.2:

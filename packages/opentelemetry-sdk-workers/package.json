@@ -86,7 +86,7 @@
     "@opentelemetry/resources": "^1.9.1",
     "@opentelemetry/sdk-trace-base": "^1.9.1",
     "@opentelemetry/semantic-conventions": "^1.9.1",
-    "protobufjs": "^7.2.1"
+    "protobufjs": "^7.2.4"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20230115.0",
