@@ -2,7 +2,7 @@
     "name": "proto-worker-sample",
     "private": true,
     "devDependencies": {
-        "wrangler": "^2.9.0"
+        "wrangler": "^2.20.1"
     },
     "dependencies": {
         "opentelemetry-sdk-workers": "workspace:*"
