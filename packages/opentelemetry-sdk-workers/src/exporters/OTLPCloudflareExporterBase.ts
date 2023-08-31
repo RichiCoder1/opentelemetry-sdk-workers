@@ -8,6 +8,12 @@ import {
 	parseHeaders
 } from "@opentelemetry/otlp-exporter-base";
 import { isError } from "lodash-es";
+import { makeCompressionStream } from 'compression-streams-polyfill/ponyfill'
+import { TransformStream } from 'web-streams-polyfill/ponyfill'
+
+// @ts-ignore
+const CompressionStream = makeCompressionStream(TransformStream) 
+
 
 export type OTLPCloudflareExporterBaseConfig = Omit<
 	OTLPExporterConfigBase,

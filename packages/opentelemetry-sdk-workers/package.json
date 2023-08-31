@@ -1,100 +1,93 @@
 {
-  "name": "opentelemetry-sdk-workers",
-  "version": "0.6.2",
-  "description": "Open Telemetry Cloudflare Workers Library. Provides a basic sdk for instrumenting workers.",
-  "module": "dist/index.mjs",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.mjs"
-    },
-    "./performance": {
-      "types": "./dist/performance.d.ts",
-      "default": "./dist/performance.mjs"
-    },
-    "./exporters/OTLPProtoTraceExporter": {
-      "types": "./dist/exporters/OTLPProtoTraceExporter.d.ts",
-      "default": "./dist/exporters/OTLPProtoTraceExporter.mjs"
-    },
-    "./exporters/OTLPProtoLogExporter": {
-      "types": "./dist/exporters/OTLPProtoLogExporter.d.ts",
-      "default": "./dist/exporters/OTLPProtoLogExporter.mjs"
-    },
-    "./*": {
-      "default": null
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "dist/index.d.ts"
-      ],
-      "exporters/OTLPProtoTraceExporter": [
-        "dist/exporters/OTLPProtoTraceExporter.d.ts"
-      ],
-      "exporters/OTLPProtoLogExporter": [
-        "dist/exporters/OTLPProtoLogExporter.d.ts"
-      ]
-    }
-  },
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsup",
-    "watch": "tsup --watch",
-    "proto:build": "pbjs --target static-module --wrap es6 --path proto/opentelemetry/proto common/v1/common.proto resource/v1/resource.proto trace/v1/trace.proto logs/v1/logs.proto collector/logs/v1/logs_service.proto collector/trace/v1/trace_service.proto --out src/proto.js",
-    "proto:types": "pbts --out src/proto.d.ts src/proto.js"
-  },
-  "nx": {
-    "targets": {
-      "build": {
-        "dependsOn": [
-          "proto:types"
-        ]
-      },
-      "proto:types": {
-        "dependsOn": [
-          "proto:build"
-        ]
-      }
-    }
-  },
-  "keywords": [
-    "otel",
-    "opentelemetry",
-    "cloudflare",
-    "worker",
-    "tracing"
-  ],
-  "author": "Richard Simpson <richicoder1@outlook.com>",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/RichiCoder1/opentelemetry-sdk-workers.git"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "license": "MIT",
-  "engines": {
-    "node": ">=14",
-    "pnpm": ">=7"
-  },
-  "dependencies": {
-    "@opentelemetry/api": "^1.4.0",
-    "@opentelemetry/core": "^1.9.1",
-    "@opentelemetry/otlp-exporter-base": "^0.35.1",
-    "@opentelemetry/otlp-transformer": "^0.35.1",
-    "@opentelemetry/resources": "^1.9.1",
-    "@opentelemetry/sdk-trace-base": "^1.9.1",
-    "@opentelemetry/semantic-conventions": "^1.9.1",
-    "protobufjs": "^7.2.1"
-  },
-  "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230115.0",
-    "@opentelemetry/instrumentation": "^0.35.1",
-    "@types/lodash-es": "^4.17.6",
-    "diary": "^0.4.3",
-    "lodash-es": "^4.17.21",
-    "long": "^5.2.1",
-    "protobufjs-cli": "^1.1.1"
-  }
+	"name": "@highlight-run/opentelemetry-sdk-workers",
+	"version": "0.6.2",
+	"description": "Open Telemetry Cloudflare Workers Library. Provides a basic sdk for instrumenting workers.",
+	"type": "module",
+	"module": "dist/index.mjs",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.mts",
+			"default": "./dist/index.mjs"
+		},
+		"./performance": {
+			"types": "./dist/performance.d.mts",
+			"default": "./dist/performance.mjs"
+		},
+		"./exporters/OTLPProtoTraceExporter": {
+			"types": "./dist/exporters/OTLPProtoTraceExporter.d.mts",
+			"default": "./dist/exporters/OTLPProtoTraceExporter.mjs"
+		},
+		"./exporters/OTLPProtoLogExporter": {
+			"types": "./dist/exporters/OTLPProtoLogExporter.d.mts",
+			"default": "./dist/exporters/OTLPProtoLogExporter.mjs"
+		},
+		"./*": {
+			"default": null
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"*": [
+				"dist/index.d.ts"
+			],
+			"exporters/OTLPProtoTraceExporter": [
+				"dist/exporters/OTLPProtoTraceExporter.d.ts"
+			],
+			"exporters/OTLPProtoLogExporter": [
+				"dist/exporters/OTLPProtoLogExporter.d.ts"
+			]
+		}
+	},
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "yarn build:proto && tsup",
+		"dev": "tsup --watch",
+		"build:proto": "yarn proto:build && yarn proto:types",
+		"proto:build": "pbjs --target static-module --wrap es6 --path proto/opentelemetry/proto common/v1/common.proto resource/v1/resource.proto trace/v1/trace.proto logs/v1/logs.proto collector/logs/v1/logs_service.proto collector/trace/v1/trace_service.proto --out src/proto.js",
+		"proto:types": "pbts --out src/proto.d.ts src/proto.js"
+	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
+	"keywords": [
+		"otel",
+		"opentelemetry",
+		"cloudflare",
+		"worker",
+		"tracing"
+	],
+	"author": "Richard Simpson <richicoder1@outlook.com>",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/RichiCoder1/opentelemetry-sdk-workers.git"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=14"
+	},
+	"dependencies": {
+		"@opentelemetry/api": "^1.4.0",
+		"@opentelemetry/core": "^1.9.1",
+		"@opentelemetry/otlp-exporter-base": "^0.35.1",
+		"@opentelemetry/otlp-transformer": "^0.35.1",
+		"@opentelemetry/resources": "^1.9.1",
+		"@opentelemetry/sdk-trace-base": "^1.9.1",
+		"@opentelemetry/semantic-conventions": "^1.9.1",
+		"compression-streams-polyfill": "^0.1.4",
+		"protobufjs": "^7.2.1",
+		"tsup": "^7.2.0",
+		"web-streams-polyfill": "^3.2.1"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20230115.0",
+		"@opentelemetry/instrumentation": "^0.35.1",
+		"@types/lodash-es": "^4.17.6",
+		"diary": "^0.4.3",
+		"lodash-es": "^4.17.21",
+		"long": "^5.2.1",
+		"protobufjs-cli": "^1.1.1"
+	}
 }
