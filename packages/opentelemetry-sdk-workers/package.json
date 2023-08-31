@@ -3,23 +3,23 @@
 	"version": "0.6.2",
 	"description": "Open Telemetry Cloudflare Workers Library. Provides a basic sdk for instrumenting workers.",
 	"type": "module",
-	"module": "dist/index.mjs",
+	"module": "dist/index.js",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.mts",
-			"default": "./dist/index.mjs"
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
 		},
 		"./performance": {
-			"types": "./dist/performance.d.mts",
-			"default": "./dist/performance.mjs"
+			"types": "./dist/performance.d.ts",
+			"default": "./dist/performance.js"
 		},
 		"./exporters/OTLPProtoTraceExporter": {
-			"types": "./dist/exporters/OTLPProtoTraceExporter.d.mts",
-			"default": "./dist/exporters/OTLPProtoTraceExporter.mjs"
+			"types": "./dist/exporters/OTLPProtoTraceExporter.d.ts",
+			"default": "./dist/exporters/OTLPProtoTraceExporter.js"
 		},
 		"./exporters/OTLPProtoLogExporter": {
-			"types": "./dist/exporters/OTLPProtoLogExporter.d.mts",
-			"default": "./dist/exporters/OTLPProtoLogExporter.mjs"
+			"types": "./dist/exporters/OTLPProtoLogExporter.d.ts",
+			"default": "./dist/exporters/OTLPProtoLogExporter.js"
 		},
 		"./*": {
 			"default": null
@@ -41,7 +41,7 @@
 	"types": "dist/index.d.ts",
 	"scripts": {
 		"build": "yarn build:proto && tsup",
-		"dev": "tsup --watch",
+		"dev": "yarn build:proto && tsup --watch",
 		"build:proto": "yarn proto:build && yarn proto:types",
 		"proto:build": "pbjs --target static-module --wrap es6 --path proto/opentelemetry/proto common/v1/common.proto resource/v1/resource.proto trace/v1/trace.proto logs/v1/logs.proto collector/logs/v1/logs_service.proto collector/trace/v1/trace_service.proto --out src/proto.js",
 		"proto:types": "pbts --out src/proto.d.ts src/proto.js"
@@ -76,10 +76,8 @@
 		"@opentelemetry/resources": "^1.9.1",
 		"@opentelemetry/sdk-trace-base": "^1.9.1",
 		"@opentelemetry/semantic-conventions": "^1.9.1",
-		"compression-streams-polyfill": "^0.1.4",
 		"protobufjs": "^7.2.1",
-		"tsup": "^7.2.0",
-		"web-streams-polyfill": "^3.2.1"
+		"tsup": "^7.2.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230115.0",

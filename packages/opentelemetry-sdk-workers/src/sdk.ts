@@ -189,6 +189,7 @@ export class WorkersSDK<TEnv extends Record<string, unknown> = {}> {
         this.traceProvider = new BasicTracerProvider({
             sampler: sampler,
             resource: resource,
+						forceFlushTimeoutMillis: 5000
         });
 
         const spanProcessor = new EventSpanProcessor(this.traceExporter);
