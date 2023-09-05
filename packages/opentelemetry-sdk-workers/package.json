@@ -40,9 +40,9 @@
 	},
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "yarn build:proto && tsup",
-		"dev": "yarn build:proto && tsup --watch",
-		"build:proto": "yarn proto:build && yarn proto:types",
+		"typegen": "yarn build && yarn proto:build && yarn proto:types",
+		"build": "tsup",
+		"dev": "yarn typegen && tsup --watch",
 		"proto:build": "pbjs --target static-module --wrap es6 --path proto/opentelemetry/proto common/v1/common.proto resource/v1/resource.proto trace/v1/trace.proto logs/v1/logs.proto collector/logs/v1/logs_service.proto collector/trace/v1/trace_service.proto --out src/proto.js",
 		"proto:types": "pbts --out src/proto.d.ts src/proto.js"
 	},
