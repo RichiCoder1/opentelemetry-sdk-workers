@@ -69,19 +69,19 @@
 		"node": ">=14"
 	},
 	"dependencies": {
-		"@opentelemetry/api": "^1.4.0",
-		"@opentelemetry/core": "^1.9.1",
-		"@opentelemetry/otlp-exporter-base": "^0.35.1",
-		"@opentelemetry/otlp-transformer": "^0.35.1",
-		"@opentelemetry/resources": "^1.9.1",
-		"@opentelemetry/sdk-trace-base": "^1.9.1",
-		"@opentelemetry/semantic-conventions": "^1.9.1",
+		"@opentelemetry/api": "^1.6.0",
+		"@opentelemetry/core": "^1.17.0",
+		"@opentelemetry/otlp-exporter-base": "^0.43.0",
+		"@opentelemetry/otlp-transformer": "^0.43.0",
+		"@opentelemetry/resources": "^1.17.0",
+		"@opentelemetry/sdk-trace-base": "^1.17.0",
+		"@opentelemetry/semantic-conventions": "^1.17.0",
 		"protobufjs": "^7.2.1",
 		"tsup": "^7.2.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230115.0",
-		"@opentelemetry/instrumentation": "^0.35.1",
+		"@opentelemetry/instrumentation": "^0.43.0",
 		"@types/lodash-es": "^4.17.6",
 		"diary": "^0.4.3",
 		"lodash-es": "^4.17.21",
