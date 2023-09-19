@@ -97,7 +97,7 @@ export class WorkersSDK<TEnv extends Record<string, unknown> = {}> {
     private readonly traceExporter: SpanExporter;
     private readonly logExporter?: LogExporter;
 	private readonly consoleLogEnabled: boolean;
-    private readonly requestTracer: Tracer;
+    public readonly requestTracer: Tracer;
     private readonly propagator: TextMapPropagator;
     private readonly span: Span;
     private readonly spanContext: Context;
