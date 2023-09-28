@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/opentelemetry-sdk-workers",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Open Telemetry Cloudflare Workers Library. Provides a basic sdk for instrumenting workers.",
 	"type": "module",
 	"module": "dist/index.js",
@@ -59,7 +59,7 @@
 	"author": "Richard Simpson <richicoder1@outlook.com>",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/RichiCoder1/opentelemetry-sdk-workers.git"
+		"url": "https://github.com/highlight/opentelemetry-sdk-workers"
 	},
 	"publishConfig": {
 		"access": "public"
