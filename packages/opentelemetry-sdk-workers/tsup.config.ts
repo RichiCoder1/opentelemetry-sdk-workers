@@ -7,5 +7,6 @@ export default {
 		"src/performance.ts",
 		"src/exporters/OTLPProtoTraceExporter.ts",
 		"src/exporters/OTLPProtoLogExporter.ts",
-	]
+	],
+	noExternal: ['protobufjs'],
 };
