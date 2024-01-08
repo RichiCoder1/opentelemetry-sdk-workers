@@ -80,8 +80,7 @@
 		"@opentelemetry/resources": "^1.17.0",
 		"@opentelemetry/sdk-trace-base": "^1.17.0",
 		"@opentelemetry/semantic-conventions": "^1.17.0",
-		"protobufjs": "^7.2.1",
-		"tsup": "^7.2.0"
+		"protobufjs": "^7.2.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230115.0",
@@ -89,6 +88,7 @@
 		"diary": "^0.4.3",
 		"lodash-es": "^4.17.21",
 		"long": "^5.2.1",
-		"protobufjs-cli": "^1.1.1"
+		"protobufjs-cli": "^1.1.1",
+		"tsup": "^7.2.0"
 	}
 }
