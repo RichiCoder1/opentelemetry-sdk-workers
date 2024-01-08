@@ -1,5 +1,11 @@
 # opentelemetry-sdk-workers
 
+## 1.0.4
+
+### Patch Changes
+
+-   223e47fbd: make tsup a dev dependency
+
 ## 1.0.2
 
 ### Patch Changes
