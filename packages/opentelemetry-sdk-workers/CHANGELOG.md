@@ -1,5 +1,11 @@
 # opentelemetry-sdk-workers
 
+## 1.0.5
+
+### Patch Changes
+
+-   7197d5207: update opentelemetry import for typescript 5
+
 ## 1.0.4
 
 ### Patch Changes

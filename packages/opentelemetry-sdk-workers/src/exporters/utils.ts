@@ -1,6 +1,6 @@
 import { hrTimeToNanoseconds, hexToBase64 } from "@opentelemetry/core";
 import { IAnyValue, IInstrumentationScope, IKeyValue, IResource } from "@opentelemetry/otlp-transformer";
-import { toAttributes, toAnyValue } from "@opentelemetry/otlp-transformer/build/src/common/internal";
+import { toAttributes, toAnyValue } from "@opentelemetry/otlp-transformer/build/src/common/internal.js";
 import { Resource } from "@opentelemetry/resources";
 import { LogRecord } from "../types";
 
