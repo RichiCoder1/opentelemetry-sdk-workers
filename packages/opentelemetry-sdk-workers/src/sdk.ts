@@ -268,7 +268,7 @@ export class WorkersSDK<TEnv extends Record<string, unknown> = {}> {
         this.ctx.waitUntil(this.end());
     }
 
-    private async _fetch(fetchTarget: Fetcher, request: Request | string, requestInitr?: RequestInit | Request): Promise<Response> {
+    private async _fetch(fetchTarget: { fetch: Fetcher['fetch'] }, request: Request | string, requestInitr?: RequestInit | Request): Promise<Response> {
         let downstreamRequest: Request;
         if (request instanceof Request) {
             downstreamRequest = cloneRequest(request);
