@@ -74,8 +74,8 @@
 	"dependencies": {
 		"@opentelemetry/api": "^1.8.0",
 		"@opentelemetry/core": "^1.22.0",
-		"@opentelemetry/instrumentation": "^0.49.1",
-		"@opentelemetry/otlp-exporter-base": "^0.49.1",
+		"@opentelemetry/instrumentation": "patch:@opentelemetry/instrumentation@npm%3A0.49.1#~/.yarn/patches/@opentelemetry-instrumentation-npm-0.49.1-b61cdd6ffa.patch",
+		"@opentelemetry/otlp-exporter-base": "patch:@opentelemetry/otlp-exporter-base@npm%3A0.49.1#~/.yarn/patches/@opentelemetry-otlp-exporter-base-npm-0.49.1-2fd30d85d8.patch",
 		"@opentelemetry/otlp-transformer": "^0.49.1",
 		"@opentelemetry/resources": "^1.22.0",
 		"@opentelemetry/sdk-trace-base": "^1.22.0",
